@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 // https://vitejs.dev/config/
 export default defineConfig({
+  base: '/Jogo-de-tiro-/',
   plugins: [
     react(),
     tailwindcss(),
