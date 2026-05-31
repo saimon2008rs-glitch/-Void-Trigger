@@ -367,7 +367,7 @@ export default function App() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] bg-slate-950 flex flex-col items-center justify-center p-6 overflow-y-auto bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: "linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), url('https://files.manuscdn.com/user_upload_by_module/session_file/310519663150562087/ESdMrUjYilljAMRS.png')" }}
+            style={{ backgroundImage: "linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), url('https://images.unsplash.com/photo-1614728263952-84ea256f9679?q=80&w=2000&auto=format&fit=crop')" }}
           >
             <motion.div 
               initial={{ y: -50 }}
@@ -505,7 +505,7 @@ export default function App() {
 
         {/* Leaderboard Sidebar */}
         <div className="flex flex-col gap-4">
-          <Leaderboard scores={leaderboard} currentUser={user} />
+          <Leaderboard scores={leaderboard} />
           
           <div className="bg-slate-900/30 p-6 rounded-2xl border border-white/5">
             <h4 className="font-bold text-sm uppercase tracking-widest text-slate-500 mb-4">How to Play</h4>
