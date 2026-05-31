@@ -25,7 +25,7 @@ import {
 import GameCanvas from './components/GameCanvas';
 import Leaderboard from './components/Leaderboard';
 import { INITIAL_TIME, COLORS, SHOP_ITEMS } from './constants';
-import { auth, db, signInWithGoogle, logout } from './firebase';
+import { db } from './firebase';
 import { 
   collection, 
   query, 
@@ -39,7 +39,6 @@ import {
 } from 'firebase/firestore';
 
 export default function App() {
-  const [user, setUser] = useState(null);
   const [leaderboard, setLeaderboard] = useState([]);
   const [state, setState] = useState({
     score: 0,
@@ -138,26 +137,8 @@ export default function App() {
       };
     });
 
-    // Save to Firebase if logged in
-    if (auth.currentUser) {
-      try {
-        const scoreRef = doc(db, 'leaderboard', auth.currentUser.uid);
-        const scoreDoc = await getDoc(scoreRef);
-        
-        // Only update if it's a new personal best on the server too
-        if (!scoreDoc.exists() || state.score > scoreDoc.data().score) {
-          await setDoc(scoreRef, {
-            uid: auth.currentUser.uid,
-            displayName: auth.currentUser.displayName || 'Anonymous',
-            photoURL: auth.currentUser.photoURL,
-            score: state.score,
-            updatedAt: serverTimestamp()
-          }, { merge: true });
-        }
-      } catch (error) {
-        console.error("Error saving score:", error);
-      }
-    }
+    // Save to Firebase logic removed for Guest Players to simplify
+    // You can re-enable this later with a prompt for name if desired.
   }, [state.score]);
 
   const buyItem = (item) => {
@@ -195,10 +176,6 @@ export default function App() {
   };
 
   useEffect(() => {
-    const unsubscribeAuth = auth.onAuthStateChanged((u) => {
-      setUser(u);
-    });
-
     const q = query(collection(db, 'leaderboard'), orderBy('score', 'desc'), limit(10));
     const unsubscribeLeaderboard = onSnapshot(q, (snapshot) => {
       const scores = snapshot.docs.map(doc => doc.data());
@@ -208,7 +185,6 @@ export default function App() {
     });
 
     return () => {
-      unsubscribeAuth();
       unsubscribeLeaderboard();
     };
   }, []);
@@ -247,97 +223,64 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col items-center justify-start p-4 overflow-y-auto">
-      {/* Top Bar / Auth */}
-      <div className="w-full max-w-6xl flex justify-between items-center mb-4">
-        <div className="flex items-center gap-2">
-          <TargetIcon className="w-6 h-6 text-red-500" />
-          <span className="font-black tracking-tighter uppercase italic text-xl text-purple-500">Void <span className="text-white">Trigger</span></span>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          {user ? (
-            <div className="flex items-center gap-3 bg-slate-900/50 p-1.5 pr-4 rounded-full border border-white/10">
-              {user.photoURL ? (
-                <img src={user.photoURL} alt={user.displayName} className="w-8 h-8 rounded-full border border-white/10" referrerPolicy="no-referrer" />
-              ) : (
-                <div className="w-8 h-8 rounded-full bg-slate-800 flex items-center justify-center"><User className="w-4 h-4" /></div>
-              )}
-              <span className="text-sm font-bold hidden sm:inline">{user.displayName}</span>
-              <button onClick={logout} className="p-2 hover:bg-white/10 rounded-full transition-colors text-slate-400 hover:text-white">
-                <LogOut className="w-4 h-4" />
-              </button>
-            </div>
-          ) : (
-            <button 
-              onClick={signInWithGoogle}
-              className="flex items-center gap-2 bg-white text-black px-4 py-2 rounded-full font-bold text-sm hover:bg-slate-200 transition-all active:scale-95"
-            >
-              <LogIn className="w-4 h-4" />
-              Login to Save Score
-            </button>
-          )}
-        </div>
-      </div>
+      {/* Header removido para focar na experiência imersiva */}
 
-      {/* HUD */}
-      <div className="w-full max-w-4xl flex justify-between items-center mb-6 bg-slate-900/50 p-4 rounded-2xl border border-white/10 backdrop-blur-sm">
-        <div className="flex items-center gap-6">
+      {/* HUD - Responsivo */}
+      <div className="w-full max-w-4xl grid grid-cols-2 md:flex md:justify-between items-center gap-4 mb-6 bg-slate-900/50 p-4 rounded-2xl border border-white/10 backdrop-blur-sm">
+        <div className="flex items-center gap-4 md:gap-6 order-1">
           <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Score</span>
-            <div className="flex items-center gap-2">
-              <Trophy className="w-4 h-4 text-yellow-500" />
-              <span className="text-2xl font-mono font-bold text-yellow-500">{state.score}</span>
+            <span className="text-[8px] md:text-[10px] uppercase tracking-widest text-slate-500 font-bold">Score</span>
+            <div className="flex items-center gap-1 md:gap-2">
+              <Trophy className="w-3 h-3 md:w-4 md:h-4 text-yellow-500" />
+              <span className="text-lg md:text-2xl font-mono font-bold text-yellow-500">{state.score}</span>
             </div>
           </div>
           <div className="flex flex-col">
-            <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Coins</span>
-            <div className="flex items-center gap-2">
-              <Coins className="w-4 h-4 text-amber-400" />
-              <span className="text-2xl font-mono font-bold text-amber-400">{state.coins}</span>
+            <span className="text-[8px] md:text-[10px] uppercase tracking-widest text-slate-500 font-bold">Coins</span>
+            <div className="flex items-center gap-1 md:gap-2">
+              <Coins className="w-3 h-3 md:w-4 md:h-4 text-amber-400" />
+              <span className="text-lg md:text-2xl font-mono font-bold text-amber-400">{state.coins}</span>
             </div>
           </div>
         </div>
 
-        <div className="flex flex-col items-center flex-1 max-w-xs mx-8">
-           <div className="w-full flex justify-between items-end mb-1">
+        <div className="flex flex-col items-center flex-1 min-w-full md:min-w-0 md:max-w-xs order-3 md:order-2 col-span-2">
+           <div className="w-full flex justify-between items-end mb-1 px-1">
              <div className="flex items-center gap-1">
                <Star className="w-3 h-3 text-purple-400 fill-purple-400" />
-               <span className="text-[10px] uppercase tracking-widest text-purple-400 font-bold">Level {state.level}</span>
+               <span className="text-[8px] md:text-[10px] uppercase tracking-widest text-purple-400 font-bold">Phase {state.currentPhase}</span>
              </div>
-             <span className="text-[10px] font-mono text-slate-500">{state.score} XP</span>
+             <span className="text-[8px] md:text-[10px] font-mono text-slate-500">{state.score} XP</span>
            </div>
            {/* Progress Bar */}
-           <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-white/5">
+           <div className="w-full h-1.5 md:h-2 bg-slate-800 rounded-full overflow-hidden border border-white/5">
              <motion.div 
                className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
                initial={{ width: 0 }}
                animate={{ 
-                 width: `${Math.min(100, (state.score % (state.level * 500 + (state.level - 1) * 250)) / (state.level * 5 + 2.5))}%` 
+                 width: `${Math.min(100, (state.score / 1000) * 100)}%` 
                }}
                transition={{ type: "spring", stiffness: 50 }}
              />
            </div>
-           <div className="flex items-center gap-2 mt-2">
-             <Timer className={`w-4 h-4 ${state.timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-emerald-400'}`} />
-             <span className={`text-2xl font-mono font-bold ${state.timeLeft < 10 ? 'text-red-500' : 'text-emerald-400'}`}>
+           <div className="flex items-center gap-2 mt-1 md:mt-2">
+             <Timer className={`w-3 h-3 md:w-4 md:h-4 ${state.timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-emerald-400'}`} />
+             <span className={`text-xl md:text-2xl font-mono font-bold ${state.timeLeft < 10 ? 'text-red-500' : 'text-emerald-400'}`}>
                {state.timeLeft}s
              </span>
            </div>
         </div>
 
-        <div className="flex gap-4">
+        <div className="flex justify-end gap-2 md:gap-4 order-2 md:order-3">
           <button 
             onClick={() => setIsShopOpen(true)}
-            className="p-3 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors relative"
+            className="p-2 md:p-3 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors relative"
           >
-            <ShoppingBag className="w-6 h-6 text-slate-300" />
-            {state.coins >= 50 && !state.isActive && (
-              <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-ping" />
-            )}
+            <ShoppingBag className="w-4 h-4 md:w-6 md:h-6 text-slate-300" />
           </button>
           <div className="flex flex-col items-end">
-            <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">High Score</span>
-            <span className="text-xl font-mono text-slate-400">{state.highScore}</span>
+            <span className="text-[8px] md:text-[10px] uppercase tracking-widest text-slate-500 font-bold">High Score</span>
+            <span className="text-sm md:text-xl font-mono text-slate-400">{state.highScore}</span>
           </div>
         </div>
       </div>
@@ -423,7 +366,8 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-slate-950 flex flex-col items-center justify-center p-6 overflow-y-auto"
+            className="fixed inset-0 z-[60] bg-slate-950 flex flex-col items-center justify-center p-6 overflow-y-auto bg-cover bg-center bg-no-repeat"
+            style={{ backgroundImage: "linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), url('https://files.manuscdn.com/user_upload_by_module/session_file/310519663150562087/ESdMrUjYilljAMRS.png')" }}
           >
             <motion.div 
               initial={{ y: -50 }}

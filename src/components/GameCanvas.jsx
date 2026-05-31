@@ -236,8 +236,9 @@ const GameCanvas = ({
       width={GAME_WIDTH}
       height={GAME_HEIGHT}
       onClick={handleCanvasClick}
-      className="w-full h-auto max-w-4xl rounded-lg shadow-2xl cursor-crosshair border-4 border-slate-800"
+      className="w-full h-auto aspect-video max-w-4xl rounded-lg shadow-2xl cursor-crosshair border-2 md:border-4 border-slate-800 bg-slate-900"
       id="game-canvas"
+      style={{ touchAction: 'none' }}
     />
   );
 };
