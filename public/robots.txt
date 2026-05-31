@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://saimon2008rs-glitch.github.io/-Void-Trigger/sitemap.xml
