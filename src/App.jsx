@@ -11,8 +11,6 @@ import {
   ShoppingBag, 
   Clock, 
   X,
-  LogIn,
-  LogOut,
   User,
   Shield,
   Maximize,
@@ -31,11 +29,7 @@ import {
   query, 
   orderBy, 
   limit, 
-  onSnapshot, 
-  setDoc, 
-  doc, 
-  serverTimestamp,
-  getDoc
+  onSnapshot
 } from 'firebase/firestore';
 
 export default function App() {

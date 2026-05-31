@@ -2,7 +2,7 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Trophy, Medal, User } from 'lucide-react';
 
-const Leaderboard = ({ scores, currentUser }) => {
+const Leaderboard = ({ scores }) => {
   return (
     <div className="bg-slate-900/50 rounded-2xl border border-white/10 overflow-hidden backdrop-blur-sm">
       <div className="p-4 border-b border-white/5 bg-slate-800/50 flex items-center gap-2">
@@ -17,10 +17,8 @@ const Leaderboard = ({ scores, currentUser }) => {
         ) : (
           scores.map((entry, index) => (
             <div 
-              key={entry.uid} 
-              className={`p-4 flex items-center justify-between transition-colors ${
-                currentUser?.uid === entry.uid ? 'bg-red-500/10' : 'hover:bg-white/5'
-              }`}
+              key={entry.uid || index} 
+              className="p-4 flex items-center justify-between transition-colors hover:bg-white/5"
             >
               <div className="flex items-center gap-4">
                 <div className="w-8 flex justify-center">
@@ -42,9 +40,8 @@ const Leaderboard = ({ scores, currentUser }) => {
                       <User className="w-4 h-4 text-slate-400" />
                     </div>
                   )}
-                  <span className={`font-bold ${currentUser?.uid === entry.uid ? 'text-red-400' : 'text-slate-200'}`}>
+                  <span className="font-bold text-slate-200">
                     {entry.displayName}
-                    {currentUser?.uid === entry.uid && <span className="ml-2 text-[10px] bg-red-500 text-white px-1.5 py-0.5 rounded uppercase">You</span>}
                   </span>
                 </div>
               </div>
