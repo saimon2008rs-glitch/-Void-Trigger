@@ -23,7 +23,7 @@ import {
 import GameCanvas from './components/GameCanvas';
 import Leaderboard from './components/Leaderboard';
 import { INITIAL_TIME, COLORS, SHOP_ITEMS } from './constants';
-import { db } from './firebase';
+// Firebase removed for security and simplicity
 import { 
   collection, 
   query, 
@@ -170,17 +170,8 @@ export default function App() {
   };
 
   useEffect(() => {
-    const q = query(collection(db, 'leaderboard'), orderBy('score', 'desc'), limit(10));
-    const unsubscribeLeaderboard = onSnapshot(q, (snapshot) => {
-      const scores = snapshot.docs.map(doc => doc.data());
-      setLeaderboard(scores);
-    }, (error) => {
-      console.error("Leaderboard error:", error);
-    });
-
-    return () => {
-      unsubscribeLeaderboard();
-    };
+    // Leaderboard logic disabled as Firebase was removed to protect exposed API keys
+    setLeaderboard([]);
   }, []);
 
   useEffect(() => {
