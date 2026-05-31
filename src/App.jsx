@@ -367,7 +367,7 @@ export default function App() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[60] bg-slate-950 flex flex-col items-center justify-center p-6 overflow-y-auto bg-cover bg-center bg-no-repeat"
-            style={{ backgroundImage: "linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), url('https://images.unsplash.com/photo-1614728263952-84ea256f9679?q=80&w=2000&auto=format&fit=crop')" }}
+            style={{ backgroundImage: "linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), url('menu-bg.jpg')" }}
           >
             <motion.div 
               initial={{ y: -50 }}
