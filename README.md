@@ -1,4 +1,4 @@
-# Target Shooter Pro 🎯
+# ​Void Trigger
 
 A fast-paced, competitive target shooting game built with React, Tailwind CSS, and Firebase.
 
