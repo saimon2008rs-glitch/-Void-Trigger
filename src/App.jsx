@@ -21,16 +21,7 @@ import {
   Unlock
 } from 'lucide-react';
 import GameCanvas from './components/GameCanvas';
-import Leaderboard from './components/Leaderboard';
 import { INITIAL_TIME, COLORS, SHOP_ITEMS } from './constants';
-// Firebase removed for security and simplicity
-import { 
-  collection, 
-  query, 
-  orderBy, 
-  limit, 
-  onSnapshot
-} from 'firebase/firestore';
 
 export default function App() {
   const [leaderboard, setLeaderboard] = useState([]);
