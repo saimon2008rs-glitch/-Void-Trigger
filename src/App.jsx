@@ -406,10 +406,9 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Game and Leaderboard Grid */}
-      <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
-        {/* Game Area */}
-        <div className="lg:col-span-2 relative group">
+      {/* Game Area */}
+      <div className="w-full max-w-4xl relative group mb-8">
+        <div>
           <GameCanvas 
             isActive={state.isActive} 
             onScoreUpdate={handleScoreUpdate} 
@@ -488,32 +487,6 @@ export default function App() {
           </AnimatePresence>
         </div>
 
-        {/* Leaderboard Sidebar */}
-        <div className="flex flex-col gap-4">
-          <Leaderboard scores={leaderboard} />
-          
-          <div className="bg-slate-900/30 p-6 rounded-2xl border border-white/5">
-            <h4 className="font-bold text-sm uppercase tracking-widest text-slate-500 mb-4">How to Play</h4>
-            <ul className="space-y-3 text-sm text-slate-400">
-              <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-red-500" />
-                Click targets before they disappear
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                Green targets give bonus points
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                Avoid orange penalty targets
-              </li>
-              <li className="flex items-center gap-2">
-                <div className="w-1.5 h-1.5 rounded-full bg-blue-500" />
-                Use coins in the shop for power-ups
-              </li>
-            </ul>
-          </div>
-        </div>
       </div>
 
       {/* Shop Modal */}
