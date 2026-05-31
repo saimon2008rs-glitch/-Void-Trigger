@@ -16,7 +16,9 @@ import {
   User,
   Shield,
   Maximize,
-  Bot
+  Bot,
+  Star,
+  ChevronUp
 } from 'lucide-react';
 import GameCanvas from './components/GameCanvas';
 import Leaderboard from './components/Leaderboard';
@@ -55,6 +57,7 @@ export default function App() {
   });
 
   const [isShopOpen, setIsShopOpen] = useState(false);
+  const [showLevelUp, setShowLevelUp] = useState(false);
   
   const startGame = () => {
     setState(prev => ({
@@ -71,7 +74,26 @@ export default function App() {
   const handleScoreUpdate = useCallback((points) => {
     setState(prev => {
       const newScore = Math.max(0, prev.score + points);
-      const newLevel = Math.floor(newScore / 500) + 1;
+      // Níveis agora escalam: Nível 1 (0-500), Nível 2 (500-1200), Nível 3 (1200-2100)...
+      // Fórmula: XP necessário = Nível * 500 + (Nível-1) * 200
+      const calculateLevel = (score) => {
+        let lvl = 1;
+        let threshold = 500;
+        while (score >= threshold) {
+          lvl++;
+          threshold += 500 + (lvl - 1) * 250;
+        }
+        return lvl;
+      };
+
+      const newLevel = calculateLevel(newScore);
+      
+      // Notificação de Level Up
+      if (newLevel > prev.level) {
+        setShowLevelUp(true);
+        setTimeout(() => setShowLevelUp(false), 3000);
+      }
+
       const earnedCoins = points > 0 ? Math.max(1, Math.floor(points / 10)) : 0;
       const totalCoins = prev.coins + earnedCoins;
       localStorage.setItem('coins', totalCoins.toString());
@@ -259,11 +281,28 @@ export default function App() {
           </div>
         </div>
 
-        <div className="flex flex-col items-center">
-           <span className="text-[10px] uppercase tracking-widest text-slate-500 font-bold">Time Remaining</span>
-           <div className="flex items-center gap-2">
-             <Timer className={`w-6 h-6 ${state.timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-emerald-400'}`} />
-             <span className={`text-4xl font-mono font-bold ${state.timeLeft < 10 ? 'text-red-500' : 'text-emerald-400'}`}>
+        <div className="flex flex-col items-center flex-1 max-w-xs mx-8">
+           <div className="w-full flex justify-between items-end mb-1">
+             <div className="flex items-center gap-1">
+               <Star className="w-3 h-3 text-purple-400 fill-purple-400" />
+               <span className="text-[10px] uppercase tracking-widest text-purple-400 font-bold">Level {state.level}</span>
+             </div>
+             <span className="text-[10px] font-mono text-slate-500">{state.score} XP</span>
+           </div>
+           {/* Progress Bar */}
+           <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-white/5">
+             <motion.div 
+               className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
+               initial={{ width: 0 }}
+               animate={{ 
+                 width: `${Math.min(100, (state.score % (state.level * 500 + (state.level - 1) * 250)) / (state.level * 5 + 2.5))}%` 
+               }}
+               transition={{ type: "spring", stiffness: 50 }}
+             />
+           </div>
+           <div className="flex items-center gap-2 mt-2">
+             <Timer className={`w-4 h-4 ${state.timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-emerald-400'}`} />
+             <span className={`text-2xl font-mono font-bold ${state.timeLeft < 10 ? 'text-red-500' : 'text-emerald-400'}`}>
                {state.timeLeft}s
              </span>
            </div>
@@ -341,6 +380,24 @@ export default function App() {
           )}
         </AnimatePresence>
       </div>
+
+      {/* Level Up Notification */}
+      <AnimatePresence>
+        {showLevelUp && (
+          <motion.div
+            initial={{ opacity: 0, y: 50, scale: 0.5 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, scale: 1.5 }}
+            className="fixed top-1/4 z-50 pointer-events-none"
+          >
+            <div className="bg-gradient-to-b from-purple-500 to-pink-600 p-8 rounded-3xl shadow-[0_0_50px_rgba(168,85,247,0.5)] border-4 border-white flex flex-col items-center gap-2">
+              <ChevronUp className="w-12 h-12 text-white animate-bounce" />
+              <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter">Level Up!</h2>
+              <span className="text-2xl font-bold text-white/90">Nível {state.level}</span>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Game and Leaderboard Grid */}
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
