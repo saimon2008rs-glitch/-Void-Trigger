@@ -22,7 +22,8 @@ const GameCanvas = ({
   const spawnTarget = () => {
     const side = Math.floor(Math.random() * 4);
     let x, y, vx, vy;
-    const speed = 2 + level * 0.5;
+    // Dificuldade aumenta drasticamente a cada fase
+    const speed = 2 + level * 1.2;
     const currentRadius = isMega ? TARGET_RADIUS * 2 : TARGET_RADIUS;
 
     if (side === 0) { // Top
@@ -118,7 +119,8 @@ const GameCanvas = ({
     if (!ctx || !canvas) return;
 
     // Spawn logic
-    if (time - lastSpawnRef.current > Math.max(200, 1000 - level * 100)) {
+    // Spawn fica mais rápido a cada fase
+    if (time - lastSpawnRef.current > Math.max(150, 1000 - level * 150)) {
       spawnTarget();
       lastSpawnRef.current = time;
     }

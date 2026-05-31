@@ -18,7 +18,9 @@ import {
   Maximize,
   Bot,
   Star,
-  ChevronUp
+  ChevronUp,
+  Lock,
+  Unlock
 } from 'lucide-react';
 import GameCanvas from './components/GameCanvas';
 import Leaderboard from './components/Leaderboard';
@@ -45,6 +47,9 @@ export default function App() {
     timeLeft: INITIAL_TIME,
     isActive: false,
     isGameOver: false,
+    isMenuOpen: true,
+    currentPhase: 1,
+    unlockedPhases: parseInt(localStorage.getItem('unlockedPhases') || '1'),
     level: 1,
     highScore: parseInt(localStorage.getItem('highScore') || '0'),
     activePowerUps: {
@@ -59,14 +64,16 @@ export default function App() {
   const [isShopOpen, setIsShopOpen] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
   
-  const startGame = () => {
+  const startGame = (phaseNum) => {
     setState(prev => ({
       ...prev,
       score: 0,
-      timeLeft: INITIAL_TIME,
+      timeLeft: INITIAL_TIME + (phaseNum * 5), // Mais tempo para fases maiores
       isActive: true,
       isGameOver: false,
-      level: 1,
+      isMenuOpen: false,
+      currentPhase: phaseNum,
+      level: phaseNum,
       activePowerUps: { slowmo: 0, double: 0, shield: 0, mega: 0, bot: 0 }
     }));
   };
@@ -113,10 +120,20 @@ export default function App() {
       if (isNewHighScore) {
         localStorage.setItem('highScore', prev.score.toString());
       }
+
+      // Requisito para desbloquear próxima fase: 1000 pontos na fase atual
+      const nextPhase = prev.currentPhase + 1;
+      let newUnlocked = prev.unlockedPhases;
+      if (prev.score >= 1000 && prev.currentPhase === prev.unlockedPhases) {
+        newUnlocked = Math.min(10, prev.unlockedPhases + 1);
+        localStorage.setItem('unlockedPhases', newUnlocked.toString());
+      }
+
       return {
         ...prev,
         isActive: false,
         isGameOver: true,
+        unlockedPhases: newUnlocked,
         highScore: isNewHighScore ? prev.score : prev.highScore,
       };
     });
@@ -234,7 +251,7 @@ export default function App() {
       <div className="w-full max-w-6xl flex justify-between items-center mb-4">
         <div className="flex items-center gap-2">
           <TargetIcon className="w-6 h-6 text-red-500" />
-          <span className="font-black tracking-tighter uppercase italic text-xl">Target Shooter <span className="text-red-500">Pro</span></span>
+          <span className="font-black tracking-tighter uppercase italic text-xl text-purple-500">Void <span className="text-white">Trigger</span></span>
         </div>
         
         <div className="flex items-center gap-4">
@@ -399,6 +416,67 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Main Menu Screen */}
+      <AnimatePresence>
+        {state.isMenuOpen && (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] bg-slate-950 flex flex-col items-center justify-center p-6 overflow-y-auto"
+          >
+            <motion.div 
+              initial={{ y: -50 }}
+              animate={{ y: 0 }}
+              className="text-center mb-12"
+            >
+              <h1 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-purple-400 to-purple-700 uppercase italic tracking-tighter mb-2">
+                Void Trigger
+              </h1>
+              <p className="text-slate-500 tracking-[0.3em] uppercase font-bold">Deep Space Target Protocol</p>
+            </motion.div>
+
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 w-full max-w-4xl">
+              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((phase) => {
+                const isUnlocked = phase <= state.unlockedPhases;
+                return (
+                  <motion.button
+                    key={phase}
+                    whileHover={isUnlocked ? { scale: 1.05, backgroundColor: 'rgba(168, 85, 247, 0.2)' } : {}}
+                    whileTap={isUnlocked ? { scale: 0.95 } : {}}
+                    onClick={() => isUnlocked && startGame(phase)}
+                    className={`relative aspect-square rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
+                      isUnlocked 
+                        ? 'border-purple-500/50 bg-slate-900/50 text-white shadow-[0_0_20px_rgba(168,85,247,0.1)]' 
+                        : 'border-slate-800 bg-slate-900/20 text-slate-600 cursor-not-allowed'
+                    }`}
+                  >
+                    <span className="text-3xl font-black">{phase}</span>
+                    <span className="text-[10px] uppercase font-bold tracking-widest">Phase</span>
+                    {!isUnlocked && <Lock className="w-4 h-4 absolute top-3 right-3 opacity-50" />}
+                    {isUnlocked && phase < state.unlockedPhases && <Unlock className="w-4 h-4 absolute top-3 right-3 text-emerald-500 opacity-50" />}
+                  </motion.button>
+                );
+              })}
+            </div>
+
+            <div className="mt-12 text-center max-w-md">
+              <p className="text-slate-400 text-sm mb-4">Alcance <span className="text-white font-bold">1000 pontos</span> na fase atual para desbloquear a próxima. A velocidade dos alvos aumenta a cada fase.</p>
+              <div className="flex justify-center gap-8">
+                <div className="flex flex-col">
+                  <span className="text-slate-600 text-[10px] uppercase font-bold">Recorde</span>
+                  <span className="text-2xl font-mono font-bold text-purple-400">{state.highScore}</span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-slate-600 text-[10px] uppercase font-bold">Moedas</span>
+                  <span className="text-2xl font-mono font-bold text-amber-400">{state.coins}</span>
+                </div>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* Game and Leaderboard Grid */}
       <div className="w-full max-w-6xl grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8">
         {/* Game Area */}
@@ -435,11 +513,17 @@ export default function App() {
                     <p className="text-slate-400 mb-8 text-lg">Final Score: <span className="text-white font-bold">{state.score}</span></p>
                     <div className="flex gap-4 justify-center">
                       <button 
-                        onClick={startGame}
+                        onClick={() => startGame(state.currentPhase)}
                         className="group relative px-8 py-4 bg-white text-black font-bold rounded-full flex items-center gap-3 hover:bg-emerald-400 transition-all active:scale-95"
                       >
                         <RotateCcw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
                         Try Again
+                      </button>
+                      <button 
+                        onClick={() => setState(prev => ({ ...prev, isMenuOpen: true, isGameOver: false }))}
+                        className="px-8 py-4 bg-slate-800 text-white font-bold rounded-full flex items-center gap-3 hover:bg-slate-700 transition-all active:scale-95"
+                      >
+                        Menu
                       </button>
                       <button 
                         onClick={() => setIsShopOpen(true)}
