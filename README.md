@@ -3,8 +3,8 @@
 A fast-paced, competitive target shooting game built with React, Tailwind CSS, and Firebase.
 
 ## Features
-- **Fast Reflex Gameplay:** Click targets to earn points and coins.
-- **Global Leaderboard:** Compete with players worldwide using Firebase Firestore.
+<title>Void Trigger</title>
+<meta name="description" content="Domine o espaço no Void Trigger! Um jogo de tiro frenético com 10 fases desafiadoras, sistema de níveis e dificuldade progressiva. Teste seus reflexos agora." />
 - **Power-up Shop:** Use earned coins to buy Slow Motion and Double Points.
 - **Google Authentication:** Securely save your high scores to the cloud.
 - **Responsive Design:** Play on desktop or mobile.
