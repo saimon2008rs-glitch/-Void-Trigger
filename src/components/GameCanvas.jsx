@@ -22,6 +22,11 @@ const GameCanvas = ({
   const lastSpawnRef = useRef(0);
   const lastFireRef = useRef(0);
   const lastBotClickRef = useRef(0);
+  const controlsRef = useRef(controls);
+
+  useEffect(() => {
+    controlsRef.current = controls;
+  }, [controls]);
 
   const spawnTarget = () => {
     const side = Math.floor(Math.random() * 4);
@@ -121,11 +126,11 @@ const GameCanvas = ({
     }
 
     // Ship movement
-    if (controls.left) shipRef.current.x = Math.max(30, shipRef.current.x - 7);
-    if (controls.right) shipRef.current.x = Math.min(GAME_WIDTH - 30, shipRef.current.x + 7);
+    if (controlsRef.current.left) shipRef.current.x = Math.max(30, shipRef.current.x - 7);
+    if (controlsRef.current.right) shipRef.current.x = Math.min(GAME_WIDTH - 30, shipRef.current.x + 7);
 
     // Firing logic
-    if (controls.fire && time - lastFireRef.current > 200) {
+    if (controlsRef.current.fire && time - lastFireRef.current > 200) {
       bulletsRef.current.push({
         x: shipRef.current.x,
         y: shipRef.current.y - 20,
