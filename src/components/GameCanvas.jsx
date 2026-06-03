@@ -10,13 +10,17 @@ const GameCanvas = ({
   isDoublePoints,
   isShield,
   isMega,
-  isBot
+  isBot,
+  controls
 }) => {
   const canvasRef = useRef(null);
   const targetsRef = useRef([]);
+  const bulletsRef = useRef([]);
   const particlesRef = useRef([]);
+  const shipRef = useRef({ x: GAME_WIDTH / 2, y: GAME_HEIGHT - 50 });
   const requestRef = useRef(null);
   const lastSpawnRef = useRef(0);
+  const lastFireRef = useRef(0);
   const lastBotClickRef = useRef(0);
 
   const spawnTarget = () => {
@@ -84,31 +88,8 @@ const GameCanvas = ({
     }
   };
 
-  const handleCanvasClick = (e) => {
-    if (!isActive) return;
-
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-
-    const rect = canvas.getBoundingClientRect();
-    const scaleX = canvas.width / rect.width;
-    const scaleY = canvas.height / rect.height;
-    const mouseX = (e.clientX - rect.left) * scaleX;
-    const mouseY = (e.clientY - rect.top) * scaleY;
-
-    targetsRef.current = targetsRef.current.filter(target => {
-      const dist = Math.sqrt((mouseX - target.x) ** 2 + (mouseY - target.y) ** 2);
-      if (dist < target.radius) {
-        let finalPoints = isDoublePoints ? target.points * 2 : target.points;
-        // If shield is active and it's a penalty, points are 0 (already handled in spawn but good to be safe)
-        if (isShield && target.type === 'penalty') finalPoints = 0;
-        
-        onScoreUpdate(finalPoints);
-        createExplosion(target.x, target.y, target.color);
-        return false;
-      }
-      return true;
-    });
+  const handleCanvasClick = () => {
+    // Click on canvas disabled in favor of manual firing
   };
 
   const update = (time) => {
@@ -137,6 +118,20 @@ const GameCanvas = ({
           lastBotClickRef.current = time;
         }
       }
+    }
+
+    // Ship movement
+    if (controls.left) shipRef.current.x = Math.max(30, shipRef.current.x - 7);
+    if (controls.right) shipRef.current.x = Math.min(GAME_WIDTH - 30, shipRef.current.x + 7);
+
+    // Firing logic
+    if (controls.fire && time - lastFireRef.current > 200) {
+      bulletsRef.current.push({
+        x: shipRef.current.x,
+        y: shipRef.current.y - 20,
+        vy: -10
+      });
+      lastFireRef.current = time;
     }
 
     // Clear
@@ -172,6 +167,28 @@ const GameCanvas = ({
       ctx.stroke();
     }
 
+    // Update Bullets
+    bulletsRef.current.forEach(bullet => {
+      bullet.y += bullet.vy;
+      ctx.fillStyle = '#fff';
+      ctx.fillRect(bullet.x - 2, bullet.y - 10, 4, 20);
+      
+      // Check collision with targets
+      targetsRef.current = targetsRef.current.filter(target => {
+        const dist = Math.sqrt((bullet.x - target.x) ** 2 + (bullet.y - target.y) ** 2);
+        if (dist < target.radius + 10) {
+          let finalPoints = isDoublePoints ? target.points * 2 : target.points;
+          if (isShield && target.type === 'penalty') finalPoints = 0;
+          onScoreUpdate(finalPoints);
+          createExplosion(target.x, target.y, target.color);
+          bullet.toRemove = true;
+          return false;
+        }
+        return true;
+      });
+    });
+    bulletsRef.current = bulletsRef.current.filter(b => !b.toRemove && b.y > -50);
+
     // Update targets
     targetsRef.current.forEach(target => {
       const speedMult = isSlowMo ? 0.3 : 1;
@@ -188,15 +205,19 @@ const GameCanvas = ({
       ctx.strokeStyle = 'white';
       ctx.lineWidth = 2;
       ctx.stroke();
-      
-      ctx.beginPath();
-      ctx.arc(target.x, target.y, target.radius * 0.6, 0, Math.PI * 2);
-      ctx.stroke();
-      
-      ctx.beginPath();
-      ctx.arc(target.x, target.y, target.radius * 0.2, 0, Math.PI * 2);
-      ctx.stroke();
     });
+
+    // Draw Ship
+    ctx.fillStyle = '#a855f7';
+    ctx.beginPath();
+    ctx.moveTo(shipRef.current.x, shipRef.current.y - 20);
+    ctx.lineTo(shipRef.current.x - 20, shipRef.current.y + 15);
+    ctx.lineTo(shipRef.current.x + 20, shipRef.current.y + 15);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = '#fff';
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
     // Remove off-screen targets
     targetsRef.current = targetsRef.current.filter(t => 

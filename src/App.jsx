@@ -45,8 +45,8 @@ export default function App() {
     },
   });
 
-  const [isShopOpen, setIsShopOpen] = useState(false);
   const [showLevelUp, setShowLevelUp] = useState(false);
+  const [controls, setControls] = useState({ left: false, right: false, fire: false });
   
   const startGame = (phaseNum) => {
     setState(prev => ({
@@ -126,39 +126,7 @@ export default function App() {
     // You can re-enable this later with a prompt for name if desired.
   }, [state.score]);
 
-  const buyItem = (item) => {
-    if (state.coins < item.price) return;
 
-    setState(prev => {
-      const newCoins = prev.coins - item.price;
-      localStorage.setItem('coins', newCoins.toString());
-      
-      const now = Date.now();
-      let newPowerUps = { ...prev.activePowerUps };
-      let newTimeLeft = prev.timeLeft;
-
-      if (item.type === 'slowmo') {
-        newPowerUps.slowmo = now + 5000;
-      } else if (item.type === 'double') {
-        newPowerUps.double = now + 10000;
-      } else if (item.type === 'time') {
-        newTimeLeft += 10;
-      } else if (item.type === 'shield') {
-        newPowerUps.shield = now + 15000;
-      } else if (item.type === 'mega') {
-        newPowerUps.mega = now + 10000;
-      } else if (item.type === 'bot') {
-        newPowerUps.bot = now + 5000;
-      }
-
-      return {
-        ...prev,
-        coins: newCoins,
-        activePowerUps: newPowerUps,
-        timeLeft: newTimeLeft,
-      };
-    });
-  };
 
   useEffect(() => {
     // Leaderboard logic disabled as Firebase was removed to protect exposed API keys
@@ -248,12 +216,6 @@ export default function App() {
         </div>
 
         <div className="flex justify-end gap-2 md:gap-4 order-2 md:order-3">
-          <button 
-            onClick={() => setIsShopOpen(true)}
-            className="p-2 md:p-3 bg-slate-800 hover:bg-slate-700 rounded-xl transition-colors relative"
-          >
-            <ShoppingBag className="w-4 h-4 md:w-6 md:h-6 text-slate-300" />
-          </button>
           <div className="flex flex-col items-end">
             <span className="text-[8px] md:text-[10px] uppercase tracking-widest text-slate-500 font-bold">High Score</span>
             <span className="text-sm md:text-xl font-mono text-slate-400">{state.highScore}</span>
@@ -398,7 +360,7 @@ export default function App() {
       </AnimatePresence>
 
       {/* Game Area */}
-      <div className="w-full max-w-4xl relative group mb-8">
+      <div className="w-full max-w-4xl relative group mb-4">
         <div>
           <GameCanvas 
             isActive={state.isActive} 
@@ -410,6 +372,7 @@ export default function App() {
             isShield={state.activePowerUps.shield > now}
             isMega={state.activePowerUps.mega > now}
             isBot={state.activePowerUps.bot > now}
+            controls={controls}
           />
 
           <AnimatePresence>
@@ -444,13 +407,7 @@ export default function App() {
                       >
                         Menu
                       </button>
-                      <button 
-                        onClick={() => setIsShopOpen(true)}
-                        className="px-8 py-4 bg-slate-800 text-white font-bold rounded-full flex items-center gap-3 hover:bg-slate-700 transition-all active:scale-95"
-                      >
-                        <ShoppingBag className="w-5 h-5" />
-                        Visit Shop
-                      </button>
+
                     </div>
                   </div>
                 ) : (
@@ -480,78 +437,43 @@ export default function App() {
 
       </div>
 
-      {/* Shop Modal */}
-      <AnimatePresence>
-        {isShopOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
-          >
-            <motion.div 
-              initial={{ scale: 0.9, y: 20 }}
-              animate={{ scale: 1, y: 0 }}
-              exit={{ scale: 0.9, y: 20 }}
-              className="bg-slate-900 w-full max-w-2xl rounded-3xl border border-white/10 shadow-2xl overflow-hidden"
+      {/* Mobile Controls */}
+      {state.isActive && (
+        <div className="w-full max-w-4xl flex justify-between items-center px-4 mb-8">
+          <div className="flex gap-4">
+            <button 
+              onMouseDown={() => setControls(prev => ({ ...prev, left: true }))}
+              onMouseUp={() => setControls(prev => ({ ...prev, left: false }))}
+              onMouseLeave={() => setControls(prev => ({ ...prev, left: false }))}
+              onTouchStart={() => setControls(prev => ({ ...prev, left: true }))}
+              onTouchEnd={() => setControls(prev => ({ ...prev, left: false }))}
+              className="w-20 h-20 bg-slate-800/80 rounded-full flex items-center justify-center border-2 border-white/20 active:bg-purple-600 transition-colors"
             >
-              <div className="p-6 border-b border-white/5 flex justify-between items-center bg-slate-800/50">
-                <div className="flex items-center gap-3">
-                  <ShoppingBag className="w-6 h-6 text-red-500" />
-                  <h2 className="text-2xl font-bold uppercase tracking-tight">Armory Shop</h2>
-                </div>
-                <div className="flex items-center gap-6">
-                  <div className="flex items-center gap-2 bg-slate-950 px-4 py-2 rounded-full border border-white/5">
-                    <Coins className="w-4 h-4 text-amber-400" />
-                    <span className="font-mono font-bold text-amber-400">{state.coins}</span>
-                  </div>
-                  <button 
-                    onClick={() => setIsShopOpen(false)}
-                    className="p-2 hover:bg-white/10 rounded-full transition-colors"
-                  >
-                    <X className="w-6 h-6" />
-                  </button>
-                </div>
-              </div>
-
-              <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-                {SHOP_ITEMS.map((item) => (
-                  <div 
-                    key={item.id}
-                    className={`p-5 rounded-2xl border transition-all flex flex-col items-center text-center ${
-                      state.coins >= item.price 
-                        ? 'bg-slate-800/50 border-white/10 hover:border-red-500/50' 
-                        : 'bg-slate-900/50 border-white/5 opacity-60'
-                    }`}
-                  >
-                    <div className="w-12 h-12 bg-slate-950 rounded-xl flex items-center justify-center mb-4 text-red-500">
-                      {getIcon(item.icon)}
-                    </div>
-                    <h3 className="font-bold text-lg mb-1">{item.name}</h3>
-                    <p className="text-xs text-slate-400 mb-4 h-8">{item.description}</p>
-                    <button 
-                      onClick={() => buyItem(item)}
-                      disabled={state.coins < item.price}
-                      className={`w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 transition-all ${
-                        state.coins >= item.price 
-                          ? 'bg-red-600 hover:bg-red-500 text-white' 
-                          : 'bg-slate-700 text-slate-500 cursor-not-allowed'
-                      }`}
-                    >
-                      <Coins className="w-4 h-4" />
-                      {item.price}
-                    </button>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="p-6 bg-slate-800/30 text-center">
-                <p className="text-sm text-slate-500 italic">Power-ups can be bought during gameplay or in the menu!</p>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+              <ChevronUp className="w-10 h-10 -rotate-90 text-white" />
+            </button>
+            <button 
+              onMouseDown={() => setControls(prev => ({ ...prev, right: true }))}
+              onMouseUp={() => setControls(prev => ({ ...prev, right: false }))}
+              onMouseLeave={() => setControls(prev => ({ ...prev, right: false }))}
+              onTouchStart={() => setControls(prev => ({ ...prev, right: true }))}
+              onTouchEnd={() => setControls(prev => ({ ...prev, right: false }))}
+              className="w-20 h-20 bg-slate-800/80 rounded-full flex items-center justify-center border-2 border-white/20 active:bg-purple-600 transition-colors"
+            >
+              <ChevronUp className="w-10 h-10 rotate-90 text-white" />
+            </button>
+          </div>
+          <button 
+            onMouseDown={() => setControls(prev => ({ ...prev, fire: true }))}
+            onMouseUp={() => setControls(prev => ({ ...prev, fire: false }))}
+            onMouseLeave={() => setControls(prev => ({ ...prev, fire: false }))}
+            onTouchStart={() => setControls(prev => ({ ...prev, fire: true }))}
+            onTouchEnd={() => setControls(prev => ({ ...prev, fire: false }))}
+            className="w-24 h-24 bg-red-600/80 rounded-full flex items-center justify-center border-4 border-white/40 active:bg-red-500 shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all active:scale-90"
+          >
+            <Zap className="w-10 h-10 text-white" />
+          </button>
+        </div>
+      )}
 
       {/* Instructions */}
       <div className="mt-8 grid grid-cols-3 gap-4 w-full max-w-4xl pb-12">
