@@ -52,7 +52,7 @@ export default function App() {
     setState(prev => ({
       ...prev,
       score: 0,
-      timeLeft: INITIAL_TIME + (phaseNum * 5), // Mais tempo para fases maiores
+      timeLeft: 120, // Todas as fases agora têm 2:00 minutos
       isActive: true,
       isGameOver: false,
       isMenuOpen: false,
