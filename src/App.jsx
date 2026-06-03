@@ -134,6 +134,29 @@ export default function App() {
   }, []);
 
   useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (!state.isActive) return;
+      if (e.key === 'ArrowLeft') setControls(prev => ({ ...prev, left: true }));
+      if (e.key === 'ArrowRight') setControls(prev => ({ ...prev, right: true }));
+      if (e.key === ' ' || e.key === 'ArrowUp') setControls(prev => ({ ...prev, fire: true }));
+    };
+
+    const handleKeyUp = (e) => {
+      if (e.key === 'ArrowLeft') setControls(prev => ({ ...prev, left: false }));
+      if (e.key === 'ArrowRight') setControls(prev => ({ ...prev, right: false }));
+      if (e.key === ' ' || e.key === 'ArrowUp') setControls(prev => ({ ...prev, fire: false }));
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [state.isActive]);
+
+  useEffect(() => {
     let timer;
     if (state.isActive && state.timeLeft > 0) {
       timer = window.setInterval(() => {
