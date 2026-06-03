@@ -442,35 +442,35 @@ export default function App() {
         <div className="w-full max-w-4xl flex justify-between items-center px-4 mb-8">
           <div className="flex gap-4">
             <button 
-              onMouseDown={() => setControls(prev => ({ ...prev, left: true }))}
-              onMouseUp={() => setControls(prev => ({ ...prev, left: false }))}
-              onMouseLeave={() => setControls(prev => ({ ...prev, left: false }))}
-              onTouchStart={() => setControls(prev => ({ ...prev, left: true }))}
-              onTouchEnd={() => setControls(prev => ({ ...prev, left: false }))}
-              className="w-20 h-20 bg-slate-800/80 rounded-full flex items-center justify-center border-2 border-white/20 active:bg-purple-600 transition-colors"
+              onMouseDown={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: true })); }}
+              onMouseUp={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
+              onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
+              onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: true })); }}
+              onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
+              className="w-24 h-24 md:w-20 md:h-20 bg-slate-800/80 rounded-full flex items-center justify-center border-2 border-white/20 active:bg-purple-600 transition-colors select-none touch-none"
             >
-              <ChevronUp className="w-10 h-10 -rotate-90 text-white" />
+              <ChevronUp className="w-12 h-12 md:w-10 md:h-10 -rotate-90 text-white" />
             </button>
             <button 
-              onMouseDown={() => setControls(prev => ({ ...prev, right: true }))}
-              onMouseUp={() => setControls(prev => ({ ...prev, right: false }))}
-              onMouseLeave={() => setControls(prev => ({ ...prev, right: false }))}
-              onTouchStart={() => setControls(prev => ({ ...prev, right: true }))}
-              onTouchEnd={() => setControls(prev => ({ ...prev, right: false }))}
-              className="w-20 h-20 bg-slate-800/80 rounded-full flex items-center justify-center border-2 border-white/20 active:bg-purple-600 transition-colors"
+              onMouseDown={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: true })); }}
+              onMouseUp={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
+              onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
+              onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: true })); }}
+              onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
+              className="w-24 h-24 md:w-20 md:h-20 bg-slate-800/80 rounded-full flex items-center justify-center border-2 border-white/20 active:bg-purple-600 transition-colors select-none touch-none"
             >
-              <ChevronUp className="w-10 h-10 rotate-90 text-white" />
+              <ChevronUp className="w-12 h-12 md:w-10 md:h-10 rotate-90 text-white" />
             </button>
           </div>
           <button 
-            onMouseDown={() => setControls(prev => ({ ...prev, fire: true }))}
-            onMouseUp={() => setControls(prev => ({ ...prev, fire: false }))}
-            onMouseLeave={() => setControls(prev => ({ ...prev, fire: false }))}
-            onTouchStart={() => setControls(prev => ({ ...prev, fire: true }))}
-            onTouchEnd={() => setControls(prev => ({ ...prev, fire: false }))}
-            className="w-24 h-24 bg-red-600/80 rounded-full flex items-center justify-center border-4 border-white/40 active:bg-red-500 shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all active:scale-90"
+            onMouseDown={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: true })); }}
+            onMouseUp={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
+            onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
+            onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: true })); }}
+            onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
+            className="w-28 h-28 md:w-24 md:h-24 bg-red-600/80 rounded-full flex items-center justify-center border-4 border-white/40 active:bg-red-500 shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all active:scale-90 select-none touch-none"
           >
-            <Zap className="w-10 h-10 text-white" />
+            <Zap className="w-12 h-12 md:w-10 md:h-10 text-white" />
           </button>
         </div>
       )}
