@@ -256,15 +256,15 @@ const GameCanvas = ({
 
   useEffect(() => {
     const img = new Image();
-    // Usando caminho relativo que funciona melhor com o build do Vite
-    img.src = 'ship.png';
+    // Adicionando um marcador de versão para forçar o navegador a baixar a imagem nova
+    const version = new Date().getTime();
+    img.src = `ship.png?v=${version}`;
     img.onload = () => {
       shipImageRef.current = img;
     };
     img.onerror = (err) => {
       console.error('Erro ao carregar a imagem da nave:', err);
-      // Fallback para caminho absoluto se o relativo falhar
-      img.src = '/-Void-Trigger/ship.png';
+      img.src = `/-Void-Trigger/ship.png?v=${version}`;
     };
   }, []);
 
