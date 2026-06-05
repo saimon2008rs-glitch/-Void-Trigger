@@ -215,7 +215,7 @@ const GameCanvas = ({
 
     // Draw Ship
     if (shipImageRef.current) {
-      const shipSize = 60;
+      const shipSize = 80; // Aumentado para 80px para melhor visibilidade
       ctx.drawImage(
         shipImageRef.current, 
         shipRef.current.x - shipSize / 2, 
