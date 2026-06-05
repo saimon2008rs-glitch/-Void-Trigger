@@ -256,9 +256,14 @@ const GameCanvas = ({
 
   useEffect(() => {
     const img = new Image();
-    img.src = 'ship-pixel-art.png';
+    // Adicionando o caminho base para funcionar no GitHub Pages
+    img.src = '/-Void-Trigger/ship-pixel-art.png';
     img.onload = () => {
       shipImageRef.current = img;
+    };
+    img.onerror = () => {
+      // Fallback para caminho relativo se o absoluto falhar
+      img.src = 'ship-pixel-art.png';
     };
   }, []);
 
