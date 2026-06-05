@@ -18,6 +18,7 @@ const GameCanvas = ({
   const bulletsRef = useRef([]);
   const particlesRef = useRef([]);
   const shipRef = useRef({ x: GAME_WIDTH / 2, y: GAME_HEIGHT - 50 });
+  const shipImageRef = useRef(null);
   const requestRef = useRef(null);
   const lastSpawnRef = useRef(0);
   const lastFireRef = useRef(0);
@@ -213,16 +214,24 @@ const GameCanvas = ({
     });
 
     // Draw Ship
-    ctx.fillStyle = '#a855f7';
-    ctx.beginPath();
-    ctx.moveTo(shipRef.current.x, shipRef.current.y - 20);
-    ctx.lineTo(shipRef.current.x - 20, shipRef.current.y + 15);
-    ctx.lineTo(shipRef.current.x + 20, shipRef.current.y + 15);
-    ctx.closePath();
-    ctx.fill();
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    if (shipImageRef.current) {
+      const shipSize = 60;
+      ctx.drawImage(
+        shipImageRef.current, 
+        shipRef.current.x - shipSize / 2, 
+        shipRef.current.y - shipSize / 2, 
+        shipSize, 
+        shipSize
+      );
+    } else {
+      ctx.fillStyle = '#a855f7';
+      ctx.beginPath();
+      ctx.moveTo(shipRef.current.x, shipRef.current.y - 20);
+      ctx.lineTo(shipRef.current.x - 20, shipRef.current.y + 15);
+      ctx.lineTo(shipRef.current.x + 20, shipRef.current.y + 15);
+      ctx.closePath();
+      ctx.fill();
+    }
 
     // Remove off-screen targets
     targetsRef.current = targetsRef.current.filter(t => 
@@ -244,6 +253,14 @@ const GameCanvas = ({
 
     requestRef.current = requestAnimationFrame(update);
   };
+
+  useEffect(() => {
+    const img = new Image();
+    img.src = 'ship-pixel-art.png';
+    img.onload = () => {
+      shipImageRef.current = img;
+    };
+  }, []);
 
   useEffect(() => {
     if (isActive) {
