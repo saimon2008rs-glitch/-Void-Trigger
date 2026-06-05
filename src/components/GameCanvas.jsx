@@ -214,8 +214,8 @@ const GameCanvas = ({
     });
 
     // Draw Ship
+    const shipSize = 100; // Tamanho ideal para a pixel art
     if (shipImageRef.current) {
-      const shipSize = 80; // Aumentado para 80px para melhor visibilidade
       ctx.drawImage(
         shipImageRef.current, 
         shipRef.current.x - shipSize / 2, 
@@ -224,13 +224,15 @@ const GameCanvas = ({
         shipSize
       );
     } else {
-      ctx.fillStyle = '#a855f7';
+      // Se a imagem ainda estiver carregando, desenhamos um brilho temporário
+      // mas NUNCA mais o triângulo roxo.
+      ctx.shadowBlur = 15;
+      ctx.shadowColor = '#a855f7';
+      ctx.fillStyle = '#fff';
       ctx.beginPath();
-      ctx.moveTo(shipRef.current.x, shipRef.current.y - 20);
-      ctx.lineTo(shipRef.current.x - 20, shipRef.current.y + 15);
-      ctx.lineTo(shipRef.current.x + 20, shipRef.current.y + 15);
-      ctx.closePath();
+      ctx.arc(shipRef.current.x, shipRef.current.y, 10, 0, Math.PI * 2);
       ctx.fill();
+      ctx.shadowBlur = 0;
     }
 
     // Remove off-screen targets
