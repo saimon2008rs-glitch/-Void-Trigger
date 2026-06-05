@@ -258,15 +258,15 @@ const GameCanvas = ({
 
   useEffect(() => {
     const img = new Image();
-    // Adicionando um marcador de versão para forçar o navegador a baixar a imagem nova
     const version = new Date().getTime();
-    img.src = `ship.png?v=${version}`;
+    // Usando a nova imagem transparente
+    img.src = `ship-transparent.webp?v=${version}`;
     img.onload = () => {
       shipImageRef.current = img;
     };
     img.onerror = (err) => {
       console.error('Erro ao carregar a imagem da nave:', err);
-      img.src = `/-Void-Trigger/ship.png?v=${version}`;
+      img.src = `/-Void-Trigger/ship-transparent.webp?v=${version}`;
     };
   }, []);
 
