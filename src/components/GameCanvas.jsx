@@ -147,7 +147,8 @@ const GameCanvas = ({
     }
 
     // Clear & Background
-    if (phaseBgImageRef.current) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    if (phaseBgImageRef.current && phaseBgImageRef.current.complete) {
       ctx.drawImage(phaseBgImageRef.current, 0, 0, canvas.width, canvas.height);
       ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -293,9 +294,11 @@ const GameCanvas = ({
     const alienImg = new Image();
     alienImg.src = `alien-red.png?v=${version}`;
     alienImg.onload = () => {
+      console.log('Alien image loaded');
       alienRedImageRef.current = alienImg;
     };
     alienImg.onerror = () => {
+      console.error('Alien image load failed, trying absolute path');
       alienImg.src = `/-Void-Trigger/alien-red.png?v=${version}`;
     };
 
