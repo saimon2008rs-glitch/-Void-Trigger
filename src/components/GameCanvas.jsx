@@ -21,6 +21,7 @@ const GameCanvas = ({
   const shipRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight - 100 });
   const shipImageRef = useRef(null);
   const phaseBgImageRef = useRef(null);
+  const alienRedImageRef = useRef(null);
   const requestRef = useRef(null);
   const lastSpawnRef = useRef(0);
   const lastFireRef = useRef(0);
@@ -287,6 +288,15 @@ const GameCanvas = ({
     img.onerror = (err) => {
       console.error('Erro ao carregar a imagem da nave:', err);
       img.src = `/-Void-Trigger/ship-transparent.webp?v=${version}`;
+    };
+
+    const alienImg = new Image();
+    alienImg.src = `alien-red.png?v=${version}`;
+    alienImg.onload = () => {
+      alienRedImageRef.current = alienImg;
+    };
+    alienImg.onerror = () => {
+      alienImg.src = `/-Void-Trigger/alien-red.png?v=${version}`;
     };
 
     // Carregar fundo específico da fase
