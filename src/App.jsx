@@ -189,118 +189,76 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans flex flex-col items-center justify-start p-4 overflow-y-auto">
-      {/* Header removido para focar na experiência imersiva */}
+    <div className="fixed inset-0 bg-slate-950 text-slate-100 font-sans overflow-hidden select-none">
+      {/* HUD de Jogo em Tela Cheia */}
+      {state.isActive && (
+        <div className="absolute inset-0 z-10 pointer-events-none p-4 md:p-8 flex flex-col justify-between">
+          {/* Top Bar - Barra de Nível e Stats */}
+          <div className="w-full flex flex-col items-center gap-2">
+            <div className="w-full max-w-2xl">
+              <div className="flex justify-between items-end mb-1 px-1">
+                <div className="flex items-center gap-2">
+                  <Star className="w-4 h-4 text-purple-400 fill-purple-400" />
+                  <span className="text-xs uppercase tracking-widest text-purple-400 font-black">Phase {state.currentPhase}</span>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-1">
+                    <Trophy className="w-4 h-4 text-yellow-500" />
+                    <span className="text-xl font-mono font-black text-yellow-500">{state.score}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Timer className={`w-4 h-4 ${state.timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-emerald-400'}`} />
+                    <span className={`text-xl font-mono font-black ${state.timeLeft < 10 ? 'text-red-500' : 'text-emerald-400'}`}>{state.timeLeft}s</span>
+                  </div>
+                </div>
+              </div>
+              <div className="w-full h-3 bg-slate-900/80 rounded-full overflow-hidden border border-white/10 backdrop-blur-md">
+                <motion.div 
+                  className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500"
+                  initial={{ width: 0 }}
+                  animate={{ width: `${Math.min(100, (state.score / 1000) * 100)}%` }}
+                  transition={{ type: "spring", stiffness: 50 }}
+                />
+              </div>
+            </div>
 
-      {/* HUD - Responsivo */}
-      <div className="w-full max-w-4xl grid grid-cols-2 md:flex md:justify-between items-center gap-4 mb-6 bg-slate-900/50 p-4 rounded-2xl border border-white/10 backdrop-blur-sm">
-        <div className="flex items-center gap-4 md:gap-6 order-1">
-          <div className="flex flex-col">
-            <span className="text-[8px] md:text-[10px] uppercase tracking-widest text-slate-500 font-bold">Score</span>
-            <div className="flex items-center gap-1 md:gap-2">
-              <Trophy className="w-3 h-3 md:w-4 md:h-4 text-yellow-500" />
-              <span className="text-lg md:text-2xl font-mono font-bold text-yellow-500">{state.score}</span>
+            {/* Powerups Ativos */}
+            <div className="flex gap-2">
+              <AnimatePresence>
+                {isSlowMo && (
+                  <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="px-3 py-1 bg-blue-500/20 border border-blue-500/50 rounded-full flex items-center gap-2 text-[10px] text-blue-400 backdrop-blur-sm">
+                    <Clock className="w-3 h-3" /> SLOW-MO
+                  </motion.div>
+                )}
+                {isDouble && (
+                  <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="px-3 py-1 bg-yellow-500/20 border border-yellow-500/50 rounded-full flex items-center gap-2 text-[10px] text-yellow-400 backdrop-blur-sm">
+                    <Zap className="w-3 h-3" /> 2X XP
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
           </div>
-          <div className="flex flex-col">
-            <span className="text-[8px] md:text-[10px] uppercase tracking-widest text-slate-500 font-bold">Coins</span>
-            <div className="flex items-center gap-1 md:gap-2">
-              <Coins className="w-3 h-3 md:w-4 md:h-4 text-amber-400" />
-              <span className="text-lg md:text-2xl font-mono font-bold text-amber-400">{state.coins}</span>
+
+          {/* Bottom Area - Legenda e Controles */}
+          <div className="w-full flex justify-between items-end">
+            {/* Legenda de Alvos (Canto Inferior Direito) */}
+            <div className="ml-auto bg-slate-900/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 flex flex-col gap-2">
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
+                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Normal (+10 pts)</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
+                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Bonus (+50 pts)</span>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
+                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Penalty (-20 pts)</span>
+              </div>
             </div>
           </div>
         </div>
-
-        <div className="flex flex-col items-center flex-1 min-w-full md:min-w-0 md:max-w-xs order-3 md:order-2 col-span-2">
-           <div className="w-full flex justify-between items-end mb-1 px-1">
-             <div className="flex items-center gap-1">
-               <Star className="w-3 h-3 text-purple-400 fill-purple-400" />
-               <span className="text-[8px] md:text-[10px] uppercase tracking-widest text-purple-400 font-bold">Phase {state.currentPhase}</span>
-             </div>
-             <span className="text-[8px] md:text-[10px] font-mono text-slate-500">{state.score} XP</span>
-           </div>
-           {/* Progress Bar */}
-           <div className="w-full h-1.5 md:h-2 bg-slate-800 rounded-full overflow-hidden border border-white/5">
-             <motion.div 
-               className="h-full bg-gradient-to-r from-purple-500 to-pink-500"
-               initial={{ width: 0 }}
-               animate={{ 
-                 width: `${Math.min(100, (state.score / 1000) * 100)}%` 
-               }}
-               transition={{ type: "spring", stiffness: 50 }}
-             />
-           </div>
-           <div className="flex items-center gap-2 mt-1 md:mt-2">
-             <Timer className={`w-3 h-3 md:w-4 md:h-4 ${state.timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-emerald-400'}`} />
-             <span className={`text-xl md:text-2xl font-mono font-bold ${state.timeLeft < 10 ? 'text-red-500' : 'text-emerald-400'}`}>
-               {state.timeLeft}s
-             </span>
-           </div>
-        </div>
-
-        <div className="flex justify-end gap-2 md:gap-4 order-2 md:order-3">
-          <div className="flex flex-col items-end">
-            <span className="text-[8px] md:text-[10px] uppercase tracking-widest text-slate-500 font-bold">High Score</span>
-            <span className="text-sm md:text-xl font-mono text-slate-400">{state.highScore}</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Active Powerups Bar */}
-      <div className="w-full max-w-4xl h-8 mb-2 flex gap-2">
-        <AnimatePresence>
-          {isSlowMo && (
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="px-3 py-1 bg-blue-500/20 border border-blue-500/50 rounded-full flex items-center gap-2 text-xs text-blue-400"
-            >
-              <Clock className="w-3 h-3" /> SLOW MOTION ACTIVE
-            </motion.div>
-          )}
-          {isDouble && (
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="px-3 py-1 bg-yellow-500/20 border border-yellow-500/50 rounded-full flex items-center gap-2 text-xs text-yellow-400"
-            >
-              <Zap className="w-3 h-3" /> 2X POINTS ACTIVE
-            </motion.div>
-          )}
-          {state.activePowerUps.shield > now && (
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/50 rounded-full flex items-center gap-2 text-xs text-emerald-400"
-            >
-              <Shield className="w-3 h-3" /> SHIELD ACTIVE
-            </motion.div>
-          )}
-          {state.activePowerUps.mega > now && (
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="px-3 py-1 bg-purple-500/20 border border-purple-500/50 rounded-full flex items-center gap-2 text-xs text-purple-400"
-            >
-              <Maximize className="w-3 h-3" /> MEGA TARGETS ACTIVE
-            </motion.div>
-          )}
-          {state.activePowerUps.bot > now && (
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: 20 }}
-              className="px-3 py-1 bg-red-500/20 border border-red-500/50 rounded-full flex items-center gap-2 text-xs text-red-400"
-            >
-              <Bot className="w-3 h-3" /> AUTO-BOT ACTIVE
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </div>
+      )}
 
       {/* Level Up Notification */}
       <AnimatePresence>
@@ -382,137 +340,101 @@ export default function App() {
         )}
       </AnimatePresence>
 
-	      {/* Game Area */}
-	      <div className="w-full max-w-4xl relative group mb-4">
-	        <div>
-	          <GameCanvas 
-	            isActive={state.isActive} 
-	            onScoreUpdate={handleScoreUpdate} 
-	            onGameOver={handleGameOver}
-	            level={state.level}
-	            isSlowMo={isSlowMo}
-	            isDoublePoints={isDouble}
-	            isShield={state.activePowerUps.shield > now}
-	            isMega={state.activePowerUps.mega > now}
-	            isBot={state.activePowerUps.bot > now}
-	            controls={controls}
-	            currentPhase={state.currentPhase}
-	          />
+      <div className="relative w-full h-full flex items-center justify-center">
+        {state.isActive && (
+          <GameCanvas 
+            onScoreUpdate={handleScoreUpdate}
+            onGameOver={handleGameOver}
+            isActive={state.isActive}
+            level={state.level}
+            isSlowMo={isSlowMo}
+            isDoublePoints={isDouble}
+            isShield={state.activePowerUps.shield > now}
+            isMega={state.activePowerUps.mega > now}
+            isBot={state.activePowerUps.bot > now}
+            controls={controls}
+            currentPhase={state.currentPhase}
+          />
+        )}
 
-          <AnimatePresence>
-            {!state.isActive && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 1.1 }}
-                className="absolute inset-0 flex flex-col items-center justify-center bg-slate-950/80 backdrop-blur-md rounded-lg z-10"
+        {/* Mobile Controls Overlay */}
+        {state.isActive && (
+          <div className="absolute inset-x-0 bottom-0 z-20 pointer-events-none p-6 md:p-12 flex justify-between items-end">
+            <div className="flex gap-4 pointer-events-auto">
+              <button 
+                onMouseDown={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: true })); }}
+                onMouseUp={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
+                onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
+                onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: true })); }}
+                onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
+                className="w-20 h-20 md:w-24 md:h-24 bg-slate-900/60 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-white/20 active:bg-purple-600/80 transition-all active:scale-90"
               >
-                {state.isGameOver ? (
-                  <div className="text-center p-8">
-                    <motion.h2 
-                      initial={{ y: -20 }}
-                      animate={{ y: 0 }}
-                      className="text-6xl font-black mb-2 text-red-500 uppercase tracking-tighter"
-                    >
-                      Game Over
-                    </motion.h2>
-                    <p className="text-slate-400 mb-8 text-lg">Final Score: <span className="text-white font-bold">{state.score}</span></p>
-                    <div className="flex gap-4 justify-center">
-                      <button 
-                        onClick={() => startGame(state.currentPhase)}
-                        className="group relative px-8 py-4 bg-white text-black font-bold rounded-full flex items-center gap-3 hover:bg-emerald-400 transition-all active:scale-95"
-                      >
-                        <RotateCcw className="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" />
-                        Try Again
-                      </button>
-                      <button 
-                        onClick={() => setState(prev => ({ ...prev, isMenuOpen: true, isGameOver: false }))}
-                        className="px-8 py-4 bg-slate-800 text-white font-bold rounded-full flex items-center gap-3 hover:bg-slate-700 transition-all active:scale-95"
-                      >
-                        Menu
-                      </button>
-
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center p-8">
-                    <TargetIcon className="w-24 h-24 text-red-500 mx-auto mb-6 animate-bounce" />
-                    <h1 className="text-7xl font-black mb-4 tracking-tighter uppercase italic">
-                      Target <span className="text-red-500">Shooter</span>
-                    </h1>
-                    <p className="text-slate-400 mb-12 max-w-md mx-auto">
-                      Test your reflexes. Hit targets to earn coins and buy power-ups in the shop!
-                    </p>
-                    <div className="flex gap-6 justify-center">
-                      <button 
-                        onClick={startGame}
-                        className="group relative px-12 py-6 bg-red-600 text-white font-black text-2xl rounded-2xl flex items-center gap-4 hover:bg-red-500 transition-all shadow-[0_0_40px_rgba(220,38,38,0.4)] active:scale-95"
-                      >
-                        <Play className="w-8 h-8 fill-current" />
-                        START MISSION
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </motion.div>
-            )}
-          </AnimatePresence>
-        </div>
-
-      </div>
-
-      {/* Mobile Controls */}
-      {state.isActive && (
-        <div className="w-full max-w-4xl flex justify-between items-center px-4 mb-8">
-          <div className="flex gap-4">
+                <ChevronUp className="w-10 h-10 -rotate-90 text-white" />
+              </button>
+              <button 
+                onMouseDown={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: true })); }}
+                onMouseUp={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
+                onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
+                onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: true })); }}
+                onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
+                className="w-20 h-20 md:w-24 md:h-24 bg-slate-900/60 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-white/20 active:bg-purple-600/80 transition-all active:scale-90"
+              >
+                <ChevronUp className="w-10 h-10 rotate-90 text-white" />
+              </button>
+            </div>
             <button 
-              onMouseDown={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: true })); }}
-              onMouseUp={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
-              onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
-              onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: true })); }}
-              onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
-              className="w-24 h-24 md:w-20 md:h-20 bg-slate-800/80 rounded-full flex items-center justify-center border-2 border-white/20 active:bg-purple-600 transition-colors select-none touch-none"
+              onMouseDown={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: true })); }}
+              onMouseUp={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
+              onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
+              onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: true })); }}
+              onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
+              className="w-24 h-24 md:w-28 md:h-28 bg-red-600/60 backdrop-blur-md rounded-full flex items-center justify-center border-4 border-white/30 active:bg-red-500 shadow-[0_0_30px_rgba(220,38,38,0.3)] transition-all active:scale-90 pointer-events-auto"
             >
-              <ChevronUp className="w-12 h-12 md:w-10 md:h-10 -rotate-90 text-white" />
-            </button>
-            <button 
-              onMouseDown={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: true })); }}
-              onMouseUp={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
-              onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
-              onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: true })); }}
-              onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
-              className="w-24 h-24 md:w-20 md:h-20 bg-slate-800/80 rounded-full flex items-center justify-center border-2 border-white/20 active:bg-purple-600 transition-colors select-none touch-none"
-            >
-              <ChevronUp className="w-12 h-12 md:w-10 md:h-10 rotate-90 text-white" />
+              <Zap className="w-10 h-10 text-white" />
             </button>
           </div>
-          <button 
-            onMouseDown={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: true })); }}
-            onMouseUp={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
-            onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
-            onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: true })); }}
-            onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
-            className="w-28 h-28 md:w-24 md:h-24 bg-red-600/80 rounded-full flex items-center justify-center border-4 border-white/40 active:bg-red-500 shadow-[0_0_30px_rgba(220,38,38,0.5)] transition-all active:scale-90 select-none touch-none"
-          >
-            <Zap className="w-12 h-12 md:w-10 md:h-10 text-white" />
-          </button>
-        </div>
-      )}
+        )}
 
-      {/* Instructions */}
-      <div className="mt-8 grid grid-cols-3 gap-4 w-full max-w-4xl pb-12">
-        <div className="bg-slate-900/30 p-4 rounded-xl border border-white/5 flex items-center gap-4">
-          <div className="w-4 h-4 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-          <span className="text-sm text-slate-400">Normal Target (+10 pts)</span>
-        </div>
-        <div className="bg-slate-900/30 p-4 rounded-xl border border-white/5 flex items-center gap-4">
-          <div className="w-4 h-4 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-          <span className="text-sm text-slate-400">Bonus Target (+50 pts)</span>
-        </div>
-        <div className="bg-slate-900/30 p-4 rounded-xl border border-white/5 flex items-center gap-4">
-          <div className="w-4 h-4 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-          <span className="text-sm text-slate-400">Penalty Target (-20 pts)</span>
-        </div>
+        {/* Game Over Overlay */}
+        <AnimatePresence>
+          {state.isGameOver && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-6"
+            >
+              <div className="bg-slate-900 p-12 rounded-3xl border-2 border-white/10 text-center max-w-md w-full shadow-[0_0_100px_rgba(0,0,0,0.5)]">
+                <h2 className="text-6xl font-black text-white uppercase italic tracking-tighter mb-4">Mission Over</h2>
+                <div className="flex flex-col gap-2 mb-8">
+                  <div className="flex justify-between text-slate-400 font-bold uppercase tracking-widest text-xs">
+                    <span>Score</span>
+                    <span className="text-white font-mono">{state.score}</span>
+                  </div>
+                  <div className="flex justify-between text-slate-400 font-bold uppercase tracking-widest text-xs">
+                    <span>High Score</span>
+                    <span className="text-yellow-500 font-mono">{state.highScore}</span>
+                  </div>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <button 
+                    onClick={() => startGame(state.currentPhase)}
+                    className="px-6 py-4 bg-white text-slate-950 font-black rounded-xl flex items-center justify-center gap-2 hover:bg-slate-200 transition-all active:scale-95"
+                  >
+                    <RotateCcw className="w-5 h-5" /> RETRY
+                  </button>
+                  <button 
+                    onClick={() => setState(prev => ({ ...prev, isGameOver: false, isMenuOpen: true }))}
+                    className="px-6 py-4 bg-slate-800 text-white font-black rounded-xl flex items-center justify-center gap-2 hover:bg-slate-700 transition-all active:scale-95"
+                  >
+                    <X className="w-5 h-5" /> MENU
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </div>
     </div>
   );

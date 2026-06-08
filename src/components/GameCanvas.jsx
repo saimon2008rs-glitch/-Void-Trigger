@@ -18,7 +18,7 @@ const GameCanvas = ({
   const targetsRef = useRef([]);
   const bulletsRef = useRef([]);
   const particlesRef = useRef([]);
-  const shipRef = useRef({ x: GAME_WIDTH / 2, y: GAME_HEIGHT - 50 });
+  const shipRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight - 100 });
   const shipImageRef = useRef(null);
   const phaseBgImageRef = useRef(null);
   const requestRef = useRef(null);
@@ -32,30 +32,31 @@ const GameCanvas = ({
   }, [controls]);
 
   const spawnTarget = () => {
+    const width = window.innerWidth;
+    const height = window.innerHeight;
     const side = Math.floor(Math.random() * 4);
     let x, y, vx, vy;
-    // Dificuldade aumenta drasticamente a cada fase
     const speed = 2 + level * 1.2;
     const currentRadius = isMega ? TARGET_RADIUS * 2 : TARGET_RADIUS;
 
     if (side === 0) { // Top
-      x = Math.random() * GAME_WIDTH;
+      x = Math.random() * width;
       y = -currentRadius;
       vx = (Math.random() - 0.5) * speed;
       vy = Math.random() * speed + 1;
     } else if (side === 1) { // Right
-      x = GAME_WIDTH + currentRadius;
-      y = Math.random() * GAME_HEIGHT;
+      x = width + currentRadius;
+      y = Math.random() * height;
       vx = -(Math.random() * speed + 1);
       vy = (Math.random() - 0.5) * speed;
     } else if (side === 2) { // Bottom
-      x = Math.random() * GAME_WIDTH;
-      y = GAME_HEIGHT + currentRadius;
+      x = Math.random() * width;
+      y = height + currentRadius;
       vx = (Math.random() - 0.5) * speed;
       vy = -(Math.random() * speed + 1);
     } else { // Left
       x = -currentRadius;
-      y = Math.random() * GAME_HEIGHT;
+      y = Math.random() * height;
       vx = Math.random() * speed + 1;
       vy = (Math.random() - 0.5) * speed;
     }
@@ -129,8 +130,10 @@ const GameCanvas = ({
     }
 
     // Ship movement
+    const width = window.innerWidth;
+    const height = window.innerHeight;
     if (controlsRef.current.left) shipRef.current.x = Math.max(30, shipRef.current.x - 7);
-    if (controlsRef.current.right) shipRef.current.x = Math.min(GAME_WIDTH - 30, shipRef.current.x + 7);
+    if (controlsRef.current.right) shipRef.current.x = Math.min(width - 30, shipRef.current.x + 7);
 
     // Firing logic
     if (controlsRef.current.fire && time - lastFireRef.current > 200) {
@@ -245,7 +248,7 @@ const GameCanvas = ({
 
     // Remove off-screen targets
     targetsRef.current = targetsRef.current.filter(t => 
-      t.x > -100 && t.x < GAME_WIDTH + 100 && t.y > -100 && t.y < GAME_HEIGHT + 100
+      t.x > -100 && t.x < width + 100 && t.y > -100 && t.y < height + 100
     );
 
     // Update particles
@@ -305,10 +308,10 @@ const GameCanvas = ({
   return (
     <canvas
       ref={canvasRef}
-      width={GAME_WIDTH}
-      height={GAME_HEIGHT}
+      width={window.innerWidth}
+      height={window.innerHeight}
       onClick={handleCanvasClick}
-      className="w-full h-auto aspect-video max-w-4xl rounded-lg shadow-2xl cursor-crosshair border-2 md:border-4 border-slate-800 bg-slate-900"
+      className="w-full h-full cursor-crosshair bg-slate-900"
       id="game-canvas"
       style={{ touchAction: 'none' }}
     />
