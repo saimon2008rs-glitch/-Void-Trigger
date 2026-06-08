@@ -239,22 +239,19 @@ export default function App() {
             </div>
           </div>
 
-          {/* Bottom Area - Legenda e Controles */}
-          <div className="w-full flex justify-between items-end">
-            {/* Legenda de Alvos (Canto Inferior Direito) */}
-            <div className="ml-auto bg-slate-900/40 backdrop-blur-md p-4 rounded-2xl border border-white/10 flex flex-col gap-2">
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.5)]" />
-                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Normal (+10 pts)</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Bonus (+50 pts)</span>
-              </div>
-              <div className="flex items-center gap-3">
-                <div className="w-3 h-3 rounded-full bg-amber-500 shadow-[0_0_10px_rgba(245,158,11,0.5)]" />
-                <span className="text-[10px] font-bold text-slate-300 uppercase tracking-wider">Penalty (-20 pts)</span>
-              </div>
+          {/* Legenda de Alvos (Canto Superior Direito) */}
+          <div className="absolute top-4 right-4 md:top-8 md:right-8 bg-slate-900/40 backdrop-blur-md p-3 rounded-2xl border border-white/10 flex flex-col gap-2">
+            <div className="flex items-center gap-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+              <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">Normal (+10)</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+              <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">Bonus (+50)</span>
+            </div>
+            <div className="flex items-center gap-3">
+              <div className="w-2.5 h-2.5 rounded-full bg-amber-500 shadow-[0_0_8px_rgba(245,158,11,0.5)]" />
+              <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">Penalty (-20)</span>
             </div>
           </div>
         </div>
