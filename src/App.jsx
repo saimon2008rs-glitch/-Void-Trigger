@@ -382,21 +382,22 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Game Area */}
-      <div className="w-full max-w-4xl relative group mb-4">
-        <div>
-          <GameCanvas 
-            isActive={state.isActive} 
-            onScoreUpdate={handleScoreUpdate} 
-            onGameOver={handleGameOver}
-            level={state.level}
-            isSlowMo={isSlowMo}
-            isDoublePoints={isDouble}
-            isShield={state.activePowerUps.shield > now}
-            isMega={state.activePowerUps.mega > now}
-            isBot={state.activePowerUps.bot > now}
-            controls={controls}
-          />
+	      {/* Game Area */}
+	      <div className="w-full max-w-4xl relative group mb-4">
+	        <div>
+	          <GameCanvas 
+	            isActive={state.isActive} 
+	            onScoreUpdate={handleScoreUpdate} 
+	            onGameOver={handleGameOver}
+	            level={state.level}
+	            isSlowMo={isSlowMo}
+	            isDoublePoints={isDouble}
+	            isShield={state.activePowerUps.shield > now}
+	            isMega={state.activePowerUps.mega > now}
+	            isBot={state.activePowerUps.bot > now}
+	            controls={controls}
+	            currentPhase={state.currentPhase}
+	          />
 
           <AnimatePresence>
             {!state.isActive && (

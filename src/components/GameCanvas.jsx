@@ -11,7 +11,8 @@ const GameCanvas = ({
   isShield,
   isMega,
   isBot,
-  controls
+  controls,
+  currentPhase
 }) => {
   const canvasRef = useRef(null);
   const targetsRef = useRef([]);
@@ -19,6 +20,7 @@ const GameCanvas = ({
   const particlesRef = useRef([]);
   const shipRef = useRef({ x: GAME_WIDTH / 2, y: GAME_HEIGHT - 50 });
   const shipImageRef = useRef(null);
+  const phaseBgImageRef = useRef(null);
   const requestRef = useRef(null);
   const lastSpawnRef = useRef(0);
   const lastFireRef = useRef(0);
@@ -140,9 +142,15 @@ const GameCanvas = ({
       lastFireRef.current = time;
     }
 
-    // Clear
-    ctx.fillStyle = COLORS.background;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    // Clear & Background
+    if (phaseBgImageRef.current) {
+      ctx.drawImage(phaseBgImageRef.current, 0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    } else {
+      ctx.fillStyle = COLORS.background;
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
 
     // Slow mo effect overlay
     if (isSlowMo) {
@@ -259,7 +267,6 @@ const GameCanvas = ({
   useEffect(() => {
     const img = new Image();
     const version = new Date().getTime();
-    // Usando a nova imagem transparente
     img.src = `ship-transparent.webp?v=${version}`;
     img.onload = () => {
       shipImageRef.current = img;
@@ -268,7 +275,21 @@ const GameCanvas = ({
       console.error('Erro ao carregar a imagem da nave:', err);
       img.src = `/-Void-Trigger/ship-transparent.webp?v=${version}`;
     };
-  }, []);
+
+    // Carregar fundo específico da fase
+    if (currentPhase === 1) {
+      const bgImg = new Image();
+      bgImg.src = `level1-bg.png?v=${version}`;
+      bgImg.onload = () => {
+        phaseBgImageRef.current = bgImg;
+      };
+      bgImg.onerror = () => {
+        phaseBgImageRef.current = null;
+      };
+    } else {
+      phaseBgImageRef.current = null;
+    }
+  }, [currentPhase]);
 
   useEffect(() => {
     if (isActive) {
