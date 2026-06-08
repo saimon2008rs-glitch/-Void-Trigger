@@ -242,7 +242,7 @@ export default function App() {
           {/* Legenda de Alvos (Canto Superior Direito) */}
           <div className="absolute top-4 right-4 md:top-8 md:right-8 bg-slate-900/40 backdrop-blur-md p-3 rounded-2xl border border-white/10 flex flex-col gap-2">
             <div className="flex items-center gap-3">
-              <div className="w-2.5 h-2.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]" />
+              <img src="alien-red.png" className="w-4 h-4 object-contain" alt="Alien" />
               <span className="text-[9px] font-bold text-slate-300 uppercase tracking-wider">Normal (+10)</span>
             </div>
             <div className="flex items-center gap-3">
