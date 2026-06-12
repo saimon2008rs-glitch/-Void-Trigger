@@ -35,7 +35,7 @@ const GameCanvas = ({
   const spawnTarget = () => {
     const width = window.innerWidth;
     const height = window.innerHeight;
-    const side = Math.floor(Math.random() * 4);
+    const side = Math.floor(Math.random() * 3); // Apenas 3 lados: Cima, Direita, Esquerda
     let x, y, vx, vy;
     const speed = 2 + level * 1.2;
     const currentRadius = isMega ? TARGET_RADIUS * 2 : TARGET_RADIUS;
@@ -47,17 +47,12 @@ const GameCanvas = ({
       vy = Math.random() * speed + 1;
     } else if (side === 1) { // Right
       x = width + currentRadius;
-      y = Math.random() * height;
+      y = Math.random() * (height * 0.7); // Limita o surgimento lateral até 70% da altura para não vir de trás
       vx = -(Math.random() * speed + 1);
       vy = (Math.random() - 0.5) * speed;
-    } else if (side === 2) { // Bottom
-      x = Math.random() * width;
-      y = height + currentRadius;
-      vx = (Math.random() - 0.5) * speed;
-      vy = -(Math.random() * speed + 1);
     } else { // Left
       x = -currentRadius;
-      y = Math.random() * height;
+      y = Math.random() * (height * 0.7); // Limita o surgimento lateral até 70% da altura para não vir de trás
       vx = Math.random() * speed + 1;
       vy = (Math.random() - 0.5) * speed;
     }
