@@ -21,7 +21,7 @@ const GameCanvas = ({
   const shipRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight - 100 });
     const shipImageRef = useRef(null);
   const phaseBgImageRef = useRef(null);
-  const alienRedImageRef = useRef(null);
+
 
   const requestRef = useRef(null);
   const lastSpawnRef = useRef(0);
@@ -211,25 +211,15 @@ const GameCanvas = ({
       target.y += target.vy * speedMult;
 
       // Draw target
-      if (target.type === 'normal' && alienRedImageRef.current) {
-        ctx.drawImage(
-          alienRedImageRef.current, 
-          target.x - target.radius * 1.5, 
-          target.y - target.radius * 1.5, 
-          target.radius * 3, 
-          target.radius * 3
-        );
-      } else {
-        ctx.beginPath();
-        ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
-        ctx.fillStyle = target.color;
-        ctx.fill();
-        
-        // Rings
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-      }
+      ctx.beginPath();
+      ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
+      ctx.fillStyle = target.color;
+      ctx.fill();
+      
+      // Rings
+      ctx.strokeStyle = 'white';
+      ctx.lineWidth = 2;
+      ctx.stroke();
     });
 
     // Draw Ship
@@ -288,15 +278,7 @@ const GameCanvas = ({
       shipImg.src = `/-Void-Trigger/ship-transparent.webp?v=${version}`;
     };
 
-    // Carregar Alien
-    const alienImg = new Image();
-    alienImg.src = `alien-red.png?v=${version}`;
-    alienImg.onload = () => {
-      alienRedImageRef.current = alienImg;
-    };
-    alienImg.onerror = () => {
-      alienImg.src = `/-Void-Trigger/alien-red.png?v=${version}`;
-    };
+
 
 
 
