@@ -265,20 +265,19 @@ const GameCanvas = ({
   };
 
   useEffect(() => {
-    const img = new Image();
     const version = new Date().getTime();
-    img.src = `ship-transparent.webp?v=${version}`;
-    img.onload = () => {
-      shipImageRef.current = img;
+    
+    // Carregar Nave
+    const shipImg = new Image();
+    shipImg.src = `ship-transparent.webp?v=${version}`;
+    shipImg.onload = () => {
+      shipImageRef.current = shipImg;
     };
-    img.onerror = (err) => {
-      console.error('Erro ao carregar a imagem da nave:', err);
-      img.src = `/-Void-Trigger/ship-transparent.webp?v=${version}`;
+    shipImg.onerror = () => {
+      shipImg.src = `/-Void-Trigger/ship-transparent.webp?v=${version}`;
     };
 
-
-
-    // Carregar fundo específico da fase
+    // Carregar Fundo
     if (currentPhase === 1) {
       const bgImg = new Image();
       bgImg.src = `level1-bg.png?v=${version}`;
@@ -286,7 +285,7 @@ const GameCanvas = ({
         phaseBgImageRef.current = bgImg;
       };
       bgImg.onerror = () => {
-        phaseBgImageRef.current = null;
+        bgImg.src = `/-Void-Trigger/level1-bg.png?v=${version}`;
       };
     } else {
       phaseBgImageRef.current = null;
