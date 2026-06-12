@@ -251,7 +251,7 @@ export default function App() {
             </div>
             <div className="flex items-center gap-4">
               <div className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full bg-amber-500 shadow-[0_0_12px_rgba(245,158,11,0.6)]" />
-              <span className="text-xs md:text-sm font-black text-slate-100 uppercase tracking-widest">Penalty (-5)</span>
+              <span className="text-xs md:text-sm font-black text-slate-100 uppercase tracking-widest">Minor (+5)</span>
             </div>
           </div>
         </div>

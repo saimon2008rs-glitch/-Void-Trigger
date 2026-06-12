@@ -69,7 +69,7 @@ const GameCanvas = ({
     } else if (typeRand > 0.8) {
       type = 'penalty';
       color = COLORS.penalty;
-      points = isShield ? 0 : -5;
+      points = 5;
     }
 
     const newTarget = {
