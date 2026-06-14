@@ -18,7 +18,8 @@ import {
   Star,
   ChevronUp,
   Lock,
-  Unlock
+  Unlock,
+  Heart
 } from 'lucide-react';
 import GameCanvas from './components/GameCanvas';
 import { INITIAL_TIME, COLORS, SHOP_ITEMS } from './constants';
@@ -36,6 +37,7 @@ export default function App() {
     unlockedPhases: parseInt(localStorage.getItem('unlockedPhases') || '1'),
     level: 1,
     highScore: parseInt(localStorage.getItem('highScore') || '0'),
+    lives: 3,
     activePowerUps: {
       slowmo: 0,
       double: 0,
@@ -52,6 +54,7 @@ export default function App() {
     setState(prev => ({
       ...prev,
       score: 0,
+      lives: 3,
       timeLeft: 120, // Todas as fases agora têm 2:00 minutos
       isActive: true,
       isGameOver: false,
@@ -95,6 +98,17 @@ export default function App() {
         level: newLevel,
         coins: totalCoins,
       };
+    });
+  }, []);
+
+  const handleDamage = useCallback(() => {
+    setState(prev => {
+      const newLives = prev.lives - 1;
+      if (newLives <= 0) {
+        handleGameOver();
+        return { ...prev, lives: 0 };
+      }
+      return { ...prev, lives: newLives };
     });
   }, []);
 
@@ -202,6 +216,14 @@ export default function App() {
                   <span className="text-xs uppercase tracking-widest text-purple-400 font-black">Phase {state.currentPhase}</span>
                 </div>
                 <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2 mr-4">
+                    {[...Array(3)].map((_, i) => (
+                      <Heart 
+                        key={i} 
+                        className={`w-6 h-6 ${i < state.lives ? 'text-red-500 fill-red-500' : 'text-slate-700'}`} 
+                      />
+                    ))}
+                  </div>
                   <div className="flex items-center gap-1">
                     <Trophy className="w-4 h-4 text-yellow-500" />
                     <span className="text-xl font-mono font-black text-yellow-500">{state.score}</span>
@@ -342,6 +364,7 @@ export default function App() {
           <GameCanvas 
             onScoreUpdate={handleScoreUpdate}
             onGameOver={handleGameOver}
+            onDamage={handleDamage}
             isActive={state.isActive}
             level={state.level}
             isSlowMo={isSlowMo}

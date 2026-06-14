@@ -3,7 +3,8 @@ import { GAME_WIDTH, GAME_HEIGHT, TARGET_RADIUS, COLORS } from '../constants';
 
 const GameCanvas = ({ 
   onScoreUpdate, 
-  onGameOver, 
+  onGameOver,
+  onDamage,
   isActive, 
   level,
   isSlowMo,
@@ -210,6 +211,14 @@ const GameCanvas = ({
       target.x += target.vx * speedMult;
       target.y += target.vy * speedMult;
 
+      // Check collision with ship
+      const distToShip = Math.sqrt((target.x - shipRef.current.x) ** 2 + (target.y - shipRef.current.y) ** 2);
+      if (distToShip < target.radius + 20) {
+        onDamage();
+        createExplosion(target.x, target.y, target.color);
+        target.toRemove = true;
+      }
+
       // Draw target
       ctx.beginPath();
       ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
@@ -244,9 +253,9 @@ const GameCanvas = ({
       ctx.shadowBlur = 0;
     }
 
-    // Remove off-screen targets
+    // Remove off-screen or hit targets
     targetsRef.current = targetsRef.current.filter(t => 
-      t.x > -100 && t.x < width + 100 && t.y > -100 && t.y < height + 100
+      !t.toRemove && t.x > -100 && t.x < width + 100 && t.y > -100 && t.y < height + 100
     );
 
     // Update particles
