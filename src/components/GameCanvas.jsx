@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { GAME_WIDTH, GAME_HEIGHT, TARGET_RADIUS, COLORS } from '../constants';
+import { TARGET_RADIUS, COLORS } from '../constants';
 
 const GameCanvas = ({ 
   onScoreUpdate, 
@@ -20,12 +20,9 @@ const GameCanvas = ({
   const bulletsRef = useRef([]);
   const particlesRef = useRef([]);
   const shipRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight - 100 });
-      const shipImageRef = useRef(null);
+  const shipImageRef = useRef(null);
   const phaseBgImageRef = useRef(null);
   const alienRedImageRef = useRef(null);
-
-
-
   const requestRef = useRef(null);
   const lastSpawnRef = useRef(0);
   const lastFireRef = useRef(0);
@@ -77,7 +74,7 @@ const GameCanvas = ({
     }
 
     const newTarget = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: crypto.randomUUID(),
       x, y, vx, vy, radius: currentRadius, points, type, color
     };
 
@@ -95,10 +92,6 @@ const GameCanvas = ({
         color
       });
     }
-  };
-
-  const handleCanvasClick = () => {
-    // Click on canvas disabled in favor of manual firing
   };
 
   const update = (time) => {
@@ -288,7 +281,7 @@ const GameCanvas = ({
 
   useEffect(() => {
     const version = new Date().getTime();
-    
+
     // Carregar Nave
     const shipImg = new Image();
     shipImg.src = `ship-transparent.webp?v=${version}`;
@@ -298,14 +291,6 @@ const GameCanvas = ({
     shipImg.onerror = () => {
       shipImg.src = `/-Void-Trigger/ship-transparent.webp?v=${version}`;
     };
-
-
-
-
-
-
-
-
 
     // Carregar Alien
     const alienImg = new Image();
@@ -348,7 +333,6 @@ const GameCanvas = ({
       ref={canvasRef}
       width={window.innerWidth}
       height={window.innerHeight}
-      onClick={handleCanvasClick}
       className="w-full h-full cursor-crosshair bg-slate-900"
       id="game-canvas"
       style={{ touchAction: 'none' }}

@@ -1,17 +1,12 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Target as TargetIcon, 
   Trophy, 
   Timer, 
-  Play, 
   RotateCcw, 
   Zap, 
-  Coins, 
-  ShoppingBag, 
   Clock, 
   X,
-  User,
   Shield,
   Maximize,
   Bot,
@@ -22,14 +17,13 @@ import {
   Heart
 } from 'lucide-react';
 import GameCanvas from './components/GameCanvas';
-import { INITIAL_TIME, COLORS, SHOP_ITEMS } from './constants';
+import { GAME_DURATION, COLORS } from './constants';
 
 export default function App() {
-  const [leaderboard, setLeaderboard] = useState([]);
   const [state, setState] = useState({
     score: 0,
     coins: parseInt(localStorage.getItem('coins') || '0'),
-    timeLeft: INITIAL_TIME,
+    timeLeft: GAME_DURATION,
     isActive: false,
     isGameOver: false,
     isMenuOpen: true,
@@ -55,7 +49,7 @@ export default function App() {
       ...prev,
       score: 0,
       lives: 3,
-      timeLeft: 120, // Todas as fases agora têm 2:00 minutos
+      timeLeft: GAME_DURATION, // Todas as fases têm a mesma duração definida em constants.js
       isActive: true,
       isGameOver: false,
       isMenuOpen: false,
@@ -136,16 +130,9 @@ export default function App() {
       };
     });
 
-    // Save to Firebase logic removed for Guest Players to simplify
-    // You can re-enable this later with a prompt for name if desired.
   }, [state.score]);
 
 
-
-  useEffect(() => {
-    // Leaderboard logic disabled as Firebase was removed to protect exposed API keys
-    setLeaderboard([]);
-  }, []);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -189,18 +176,6 @@ export default function App() {
   const now = Date.now();
   const isSlowMo = state.activePowerUps.slowmo > now;
   const isDouble = state.activePowerUps.double > now;
-
-  const getIcon = (iconName) => {
-    switch(iconName) {
-      case 'Clock': return <Clock className="w-6 h-6" />;
-      case 'Timer': return <Timer className="w-6 h-6" />;
-      case 'Zap': return <Zap className="w-6 h-6" />;
-      case 'Shield': return <Shield className="w-6 h-6" />;
-      case 'Maximize': return <Maximize className="w-6 h-6" />;
-      case 'Bot': return <Bot className="w-6 h-6" />;
-      default: return <ShoppingBag className="w-6 h-6" />;
-    }
-  };
 
   return (
     <div className="fixed inset-0 bg-slate-950 text-slate-100 font-sans overflow-hidden select-none">
