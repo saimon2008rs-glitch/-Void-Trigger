@@ -25,8 +25,60 @@ const GameCanvas = ({
   const lastSpawnRef = useRef(0);
   const lastFireRef = useRef(0);
   const lastBotClickRef = useRef(0);
+  const lastFrameTimeRef = useRef(0);
   const damageCooldownUntilRef = useRef(0);
   const controlsRef = useRef(controls);
+  const backgroundLayerRef = useRef(null);
+  const gridLayerRef = useRef({ canvas: null, width: 0, height: 0, slowMo: null });
+
+  const rebuildBackgroundLayer = () => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const layer = document.createElement('canvas');
+    layer.width = canvas.width;
+    layer.height = canvas.height;
+    const layerContext = layer.getContext('2d');
+    if (!layerContext) return;
+
+    if (phaseBgImageRef.current?.complete) {
+      layerContext.drawImage(phaseBgImageRef.current, 0, 0, layer.width, layer.height);
+      layerContext.fillStyle = 'rgba(15, 23, 42, 0.4)';
+      layerContext.fillRect(0, 0, layer.width, layer.height);
+    } else {
+      layerContext.fillStyle = COLORS.background;
+      layerContext.fillRect(0, 0, layer.width, layer.height);
+    }
+    backgroundLayerRef.current = layer;
+  };
+
+  const getGridLayer = (width, height, slowMo) => {
+    const cached = gridLayerRef.current;
+    if (cached.canvas && cached.width === width && cached.height === height && cached.slowMo === slowMo) {
+      return cached.canvas;
+    }
+
+    const layer = document.createElement('canvas');
+    layer.width = width;
+    layer.height = height;
+    const layerContext = layer.getContext('2d');
+    if (!layerContext) return null;
+    layerContext.strokeStyle = slowMo ? 'rgba(56, 189, 248, 0.1)' : 'rgba(255, 255, 255, 0.05)';
+    layerContext.lineWidth = 1;
+    for (let x = 0; x < width; x += 50) {
+      layerContext.beginPath();
+      layerContext.moveTo(x, 0);
+      layerContext.lineTo(x, height);
+      layerContext.stroke();
+    }
+    for (let y = 0; y < height; y += 50) {
+      layerContext.beginPath();
+      layerContext.moveTo(0, y);
+      layerContext.lineTo(width, y);
+      layerContext.stroke();
+    }
+    gridLayerRef.current = { canvas: layer, width, height, slowMo };
+    return layer;
+  };
   const gameStateRef = useRef({ isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onDamage });
 
   useEffect(() => {
@@ -89,7 +141,8 @@ const GameCanvas = ({
   };
 
   const createExplosion = (x, y, color) => {
-    for (let i = 0; i < 10; i++) {
+    const particleCount = Math.min(10, 200 - particlesRef.current.length);
+    for (let i = 0; i < particleCount; i++) {
       particlesRef.current.push({
         x,
         y,
@@ -112,6 +165,7 @@ const GameCanvas = ({
         vx: Math.cos(angle) * 5,
         vy: Math.sin(angle) * 5,
       });
+      if (enemyBulletsRef.current.length > 120) enemyBulletsRef.current.shift();
     }
   };
 
@@ -122,6 +176,12 @@ const GameCanvas = ({
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
     if (!ctx || !canvas) return;
+    const frameScale = lastFrameTimeRef.current
+      ? Math.min((time - lastFrameTimeRef.current) / (1000 / 60), 2)
+      : 1;
+    lastFrameTimeRef.current = time;
+    const width = window.innerWidth;
+    const height = window.innerHeight;
 
     // Spawn logic
     // Spawn fica mais rápido a cada fase
@@ -149,10 +209,8 @@ const GameCanvas = ({
     }
 
     // Ship movement
-    const width = window.innerWidth;
-    const height = window.innerHeight;
-    if (controlsRef.current.left) shipRef.current.x = Math.max(30, shipRef.current.x - 12);
-    if (controlsRef.current.right) shipRef.current.x = Math.min(width - 30, shipRef.current.x + 12);
+    if (controlsRef.current.left) shipRef.current.x = Math.max(30, shipRef.current.x - 12 * frameScale);
+    if (controlsRef.current.right) shipRef.current.x = Math.min(width - 30, shipRef.current.x + 12 * frameScale);
 
     // Firing logic
     if (controlsRef.current.fire && time - lastFireRef.current > 200) {
@@ -164,15 +222,13 @@ const GameCanvas = ({
       lastFireRef.current = time;
     }
 
-    // Clear & Background
+    // Camadas estáticas são desenhadas uma vez e reutilizadas a cada frame.
+    if (!backgroundLayerRef.current || backgroundLayerRef.current.width !== canvas.width || backgroundLayerRef.current.height !== canvas.height) {
+      rebuildBackgroundLayer();
+    }
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    if (phaseBgImageRef.current && phaseBgImageRef.current.complete) {
-      ctx.drawImage(phaseBgImageRef.current, 0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.4)';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-    } else {
-      ctx.fillStyle = COLORS.background;
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    if (backgroundLayerRef.current) {
+      ctx.drawImage(backgroundLayerRef.current, 0, 0);
     }
 
     // Slow mo effect overlay
@@ -188,26 +244,13 @@ const GameCanvas = ({
       ctx.strokeRect(0, 0, canvas.width, canvas.height);
     }
 
-    // Grid effect
-    ctx.strokeStyle = gameState.isSlowMo ? 'rgba(56, 189, 248, 0.1)' : 'rgba(255, 255, 255, 0.05)';
-    ctx.lineWidth = 1;
-    for (let i = 0; i < canvas.width; i += 50) {
-      ctx.beginPath();
-      ctx.moveTo(i, 0);
-      ctx.lineTo(i, canvas.height);
-      ctx.stroke();
-    }
-    for (let i = 0; i < canvas.height; i += 50) {
-      ctx.beginPath();
-      ctx.moveTo(0, i);
-      ctx.lineTo(canvas.width, i);
-      ctx.stroke();
-    }
+    const gridLayer = getGridLayer(canvas.width, canvas.height, gameState.isSlowMo);
+    if (gridLayer) ctx.drawImage(gridLayer, 0, 0);
 
     // Update enemy bullets
     enemyBulletsRef.current.forEach(bullet => {
-      bullet.x += bullet.vx;
-      bullet.y += bullet.vy;
+      bullet.x += bullet.vx * frameScale;
+      bullet.y += bullet.vy * frameScale;
       ctx.save();
       ctx.shadowBlur = 10;
       ctx.shadowColor = '#ef4444';
@@ -233,7 +276,7 @@ const GameCanvas = ({
 
     // Update player bullets
     bulletsRef.current.forEach(bullet => {
-      bullet.y += bullet.vy;
+      bullet.y += bullet.vy * frameScale;
       ctx.fillStyle = '#fff';
       ctx.fillRect(bullet.x - 2, bullet.y - 10, 4, 20);
       
@@ -264,8 +307,8 @@ const GameCanvas = ({
     // Update targets
     targetsRef.current.forEach(target => {
       const speedMult = gameState.isSlowMo ? 0.3 : 1;
-      target.x += target.vx * speedMult;
-      target.y += target.vy * speedMult;
+      target.x += target.vx * speedMult * frameScale;
+      target.y += target.vy * speedMult * frameScale;
 
       // Check collision with ship
       const shipCollisionRadius = 50;
@@ -336,9 +379,9 @@ const GameCanvas = ({
 
     // Update particles
     particlesRef.current.forEach(p => {
-      p.x += p.vx;
-      p.y += p.vy;
-      p.life -= 0.02;
+      p.x += p.vx * frameScale;
+      p.y += p.vy * frameScale;
+      p.life -= 0.02 * frameScale;
 
       ctx.globalAlpha = p.life;
       ctx.fillStyle = p.color;
@@ -369,12 +412,14 @@ const GameCanvas = ({
       bgImg.src = `level1-bg.png?v=${version}`;
       bgImg.onload = () => {
         phaseBgImageRef.current = bgImg;
+        backgroundLayerRef.current = null;
       };
       bgImg.onerror = () => {
         bgImg.src = `/-Void-Trigger/level1-bg.png?v=${version}`;
       };
     } else {
       phaseBgImageRef.current = null;
+      backgroundLayerRef.current = null;
     }
   }, [currentPhase]);
 
@@ -384,6 +429,8 @@ const GameCanvas = ({
       if (!canvas) return;
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      backgroundLayerRef.current = null;
+      gridLayerRef.current = { canvas: null, width: 0, height: 0, slowMo: null };
       shipRef.current.x = Math.min(Math.max(shipRef.current.x, 30), window.innerWidth - 30);
       shipRef.current.y = window.innerHeight - 100;
     };
@@ -393,6 +440,7 @@ const GameCanvas = ({
     if (isActive) {
       requestRef.current = requestAnimationFrame(update);
     } else {
+      lastFrameTimeRef.current = 0;
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     }
     return () => {
