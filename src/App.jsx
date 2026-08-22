@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Trophy, 
@@ -43,6 +43,8 @@ export default function App() {
 
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [controls, setControls] = useState({ left: false, right: false, fire: false });
+  const levelUpTimeoutRef = useRef(null);
+  const previousLevelRef = useRef(1);
 
   const POWERUP_COSTS = { slowmo: 10, double: 15, shield: 20, mega: 25, bot: 30 };
   const POWERUP_LABELS = { slowmo: 'Slow-Mo', double: '2X XP', shield: 'Shield', mega: 'Mega', bot: 'Bot' };
@@ -91,12 +93,6 @@ export default function App() {
 
       const newLevel = calculateLevel(newScore);
       
-      // Notificação de Level Up
-      if (newLevel > prev.level) {
-        setShowLevelUp(true);
-        setTimeout(() => setShowLevelUp(false), 3000);
-      }
-
       const earnedCoins = points > 0 ? Math.max(1, Math.floor(points / 10)) : 0;
       const totalCoins = prev.coins + earnedCoins;
       localStorage.setItem('coins', totalCoins.toString());
@@ -137,6 +133,19 @@ export default function App() {
       };
     });
 
+  }, []);
+
+  useEffect(() => {
+    if (state.level > previousLevelRef.current) {
+      setShowLevelUp(true);
+      if (levelUpTimeoutRef.current) clearTimeout(levelUpTimeoutRef.current);
+      levelUpTimeoutRef.current = window.setTimeout(() => setShowLevelUp(false), 3000);
+    }
+    previousLevelRef.current = state.level;
+  }, [state.level]);
+
+  useEffect(() => () => {
+    if (levelUpTimeoutRef.current) clearTimeout(levelUpTimeoutRef.current);
   }, []);
 
   useEffect(() => {
@@ -183,6 +192,9 @@ export default function App() {
   const now = Date.now();
   const isSlowMo = state.activePowerUps.slowmo > now;
   const isDouble = state.activePowerUps.double > now;
+  const isShield = state.activePowerUps.shield > now;
+  const isMega = state.activePowerUps.mega > now;
+  const isBot = state.activePowerUps.bot > now;
 
   return (
     <div className="fixed inset-0 bg-slate-950 text-slate-100 font-sans overflow-hidden select-none">
@@ -237,6 +249,21 @@ export default function App() {
                 {isDouble && (
                   <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="px-3 py-1 bg-yellow-500/20 border border-yellow-500/50 rounded-full flex items-center gap-2 text-[10px] text-yellow-400 backdrop-blur-sm">
                     <Zap className="w-3 h-3" /> 2X XP
+                  </motion.div>
+                )}
+                {isShield && (
+                  <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="px-3 py-1 bg-emerald-500/20 border border-emerald-500/50 rounded-full flex items-center gap-2 text-[10px] text-emerald-400 backdrop-blur-sm">
+                    <Shield className="w-3 h-3" /> SHIELD
+                  </motion.div>
+                )}
+                {isMega && (
+                  <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="px-3 py-1 bg-pink-500/20 border border-pink-500/50 rounded-full flex items-center gap-2 text-[10px] text-pink-400 backdrop-blur-sm">
+                    <Maximize className="w-3 h-3" /> MEGA
+                  </motion.div>
+                )}
+                {isBot && (
+                  <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="px-3 py-1 bg-cyan-500/20 border border-cyan-500/50 rounded-full flex items-center gap-2 text-[10px] text-cyan-400 backdrop-blur-sm">
+                    <Bot className="w-3 h-3" /> BOT
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -364,9 +391,9 @@ export default function App() {
             isActive={state.isActive}
             isSlowMo={isSlowMo}
             isDoublePoints={isDouble}
-            isShield={state.activePowerUps.shield > now}
-            isMega={state.activePowerUps.mega > now}
-            isBot={state.activePowerUps.bot > now}
+            isShield={isShield}
+            isMega={isMega}
+            isBot={isBot}
             controls={controls}
             currentPhase={state.currentPhase}
           />
@@ -382,6 +409,7 @@ export default function App() {
                 onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
                 onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: true })); }}
                 onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
+                onTouchCancel={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
                 className="w-20 h-20 md:w-24 md:h-24 bg-slate-900/60 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-white/20 active:bg-purple-600/80 transition-all active:scale-90"
               >
                 <ChevronUp className="w-10 h-10 -rotate-90 text-white" />
@@ -392,6 +420,7 @@ export default function App() {
                 onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
                 onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: true })); }}
                 onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
+                onTouchCancel={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
                 className="w-20 h-20 md:w-24 md:h-24 bg-slate-900/60 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-white/20 active:bg-purple-600/80 transition-all active:scale-90"
               >
                 <ChevronUp className="w-10 h-10 rotate-90 text-white" />
@@ -403,6 +432,7 @@ export default function App() {
               onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
               onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: true })); }}
               onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
+              onTouchCancel={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
               className="w-24 h-24 md:w-28 md:h-28 bg-red-600/60 backdrop-blur-md rounded-full flex items-center justify-center border-4 border-white/30 active:bg-red-500 shadow-[0_0_30px_rgba(220,38,38,0.3)] transition-all active:scale-90 pointer-events-auto"
             >
               <Zap className="w-10 h-10 text-white" />

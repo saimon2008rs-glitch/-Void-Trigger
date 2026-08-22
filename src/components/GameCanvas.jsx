@@ -24,6 +24,7 @@ const GameCanvas = ({
   const lastSpawnRef = useRef(0);
   const lastFireRef = useRef(0);
   const lastBotClickRef = useRef(0);
+  const damageCooldownUntilRef = useRef(0);
   const controlsRef = useRef(controls);
   const gameStateRef = useRef({ isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onDamage });
 
@@ -75,8 +76,9 @@ const GameCanvas = ({
       points = 5;
     }
 
+    const randomId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const newTarget = {
-      id: crypto.randomUUID(),
+      id: randomId,
       x, y, vx, vy, radius: currentRadius, points, type, color
     };
 
@@ -187,14 +189,17 @@ const GameCanvas = ({
       ctx.fillStyle = '#fff';
       ctx.fillRect(bullet.x - 2, bullet.y - 10, 4, 20);
       
-      // Check collision with targets
+      // Check collision with targets (cada bala pode acertar apenas um alvo)
+      let bulletHit = false;
       targetsRef.current = targetsRef.current.filter(target => {
+        if (bulletHit) return true;
         const dist = Math.sqrt((bullet.x - target.x) ** 2 + (bullet.y - target.y) ** 2);
         if (dist < target.radius + 10) {
           const finalPoints = gameState.isDoublePoints ? target.points * 2 : target.points;
           gameState.onScoreUpdate(finalPoints);
           createExplosion(target.x, target.y, target.color);
           bullet.toRemove = true;
+          bulletHit = true;
           return false;
         }
         return true;
@@ -212,7 +217,11 @@ const GameCanvas = ({
       const shipCollisionRadius = 50;
       const distToShip = Math.sqrt((target.x - shipRef.current.x) ** 2 + (target.y - shipRef.current.y) ** 2);
       if (distToShip < target.radius + shipCollisionRadius) {
-        if (!gameState.isShield) gameState.onDamage();
+        const canTakeDamage = time >= damageCooldownUntilRef.current;
+        if (!gameState.isShield && canTakeDamage) {
+          gameState.onDamage();
+          damageCooldownUntilRef.current = time + 1000;
+        }
         createExplosion(target.x, target.y, target.color);
         target.toRemove = true;
       }
