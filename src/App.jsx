@@ -7,6 +7,7 @@ import {
   Zap, 
   Clock, 
   X,
+  Menu,
   Shield,
   Maximize,
   Bot,
@@ -42,6 +43,7 @@ export default function App() {
   });
 
   const [showLevelUp, setShowLevelUp] = useState(false);
+  const [isMenuPanelOpen, setIsMenuPanelOpen] = useState(false);
   const [controls, setControls] = useState({ left: false, right: false, fire: false });
   const levelUpTimeoutRef = useRef(null);
   const previousLevelRef = useRef(1);
@@ -51,6 +53,7 @@ export default function App() {
   const POWERUP_DURATION = 15000;
   
   const startGame = (phaseNum) => {
+    setIsMenuPanelOpen(false);
     setState(prev => ({
       ...prev,
       score: 0,
@@ -306,6 +309,97 @@ export default function App() {
         )}
       </AnimatePresence>
 
+      {/* Menu hambúrguer da página inicial */}
+      {state.isMenuOpen && (
+        <motion.button
+          type="button"
+          aria-label="Abrir menu"
+          aria-expanded={isMenuPanelOpen}
+          onClick={() => setIsMenuPanelOpen(prev => !prev)}
+          whileTap={{ scale: 0.92 }}
+          className="fixed top-4 left-4 z-[90] flex h-12 w-12 items-center justify-center rounded-xl border border-white/20 bg-slate-950/80 text-white shadow-xl backdrop-blur-md transition-colors hover:bg-purple-600/80"
+        >
+          <Menu className="h-7 w-7" />
+        </motion.button>
+      )}
+
+      <AnimatePresence>
+        {state.isMenuOpen && isMenuPanelOpen && (
+          <>
+            <motion.button
+              type="button"
+              aria-label="Fechar menu"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setIsMenuPanelOpen(false)}
+              className="fixed inset-0 z-[70] cursor-default bg-black/60"
+            />
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+              aria-label="Menu principal"
+              className="fixed inset-y-0 left-0 z-[80] w-[min(88vw,360px)] overflow-y-auto border-r border-white/10 bg-slate-950/95 p-6 pt-20 text-left shadow-2xl backdrop-blur-xl"
+            >
+              <div className="mb-8 flex items-center justify-between">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-400">Void Trigger</p>
+                  <h2 className="mt-1 text-2xl font-black uppercase italic tracking-tight text-white">Menu</h2>
+                </div>
+                <button
+                  type="button"
+                  aria-label="Fechar menu"
+                  onClick={() => setIsMenuPanelOpen(false)}
+                  className="rounded-lg p-2 text-slate-400 transition-colors hover:bg-white/10 hover:text-white"
+                >
+                  <X className="h-5 w-5" />
+                </button>
+              </div>
+
+              <div className="mb-8 grid grid-cols-2 gap-3">
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                  <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">Recorde</span>
+                  <span className="mt-1 block text-2xl font-black text-purple-400">{state.highScore}</span>
+                </div>
+                <div className="rounded-xl border border-white/10 bg-white/5 p-3">
+                  <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">Moedas</span>
+                  <span className="mt-1 block text-2xl font-black text-amber-400">{state.coins}</span>
+                </div>
+              </div>
+
+              <div>
+                <div className="mb-3 flex items-end justify-between">
+                  <div>
+                    <h3 className="text-sm font-black uppercase tracking-widest text-white">Loja</h3>
+                    <p className="mt-1 text-[10px] uppercase tracking-wider text-slate-500">Power-ups por 15 segundos</p>
+                  </div>
+                  <span className="text-xs font-black text-amber-400">{state.coins} moedas</span>
+                </div>
+                <div className="space-y-2">
+                  {Object.entries(POWERUP_COSTS).map(([powerUp, cost]) => (
+                    <button
+                      type="button"
+                      key={powerUp}
+                      onClick={() => buyPowerUp(powerUp)}
+                      disabled={state.coins < cost}
+                      className="flex w-full items-center justify-between rounded-xl border border-cyan-500/20 bg-slate-900/80 px-4 py-3 text-left transition-colors hover:border-cyan-400/60 hover:bg-cyan-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+                    >
+                      <span>
+                        <span className="block text-xs font-black uppercase tracking-wide text-cyan-300">{POWERUP_LABELS[powerUp]}</span>
+                        <span className="block text-[10px] text-slate-500">Ativa imediatamente</span>
+                      </span>
+                      <span className="text-xs font-black text-amber-400">{cost}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
       {/* Main Menu Screen */}
       <AnimatePresence>
         {state.isMenuOpen && (
@@ -363,21 +457,7 @@ export default function App() {
                   <span className="text-2xl font-mono font-bold text-amber-400">{state.coins}</span>
                 </div>
               </div>
-              <div className="mt-8 w-full max-w-2xl">
-                <h2 className="text-center text-xs uppercase tracking-[0.25em] text-slate-500 font-black mb-3">Power-ups — duração: 15s</h2>
-                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
-                  {Object.entries(POWERUP_COSTS).map(([powerUp, cost]) => (
-                    <button
-                      key={powerUp}
-                      onClick={() => buyPowerUp(powerUp)}
-                      disabled={state.coins < cost}
-                      className="rounded-xl border border-cyan-500/30 bg-slate-900/70 px-2 py-2 text-[10px] font-bold uppercase tracking-wide text-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed"
-                    >
-                      {POWERUP_LABELS[powerUp]}<br /><span className="text-amber-400">{cost} moedas</span>
-                    </button>
-                  ))}
-                </div>
-              </div>
+
             </div>
           </motion.div>
         )}
@@ -470,7 +550,7 @@ export default function App() {
                     <RotateCcw className="w-5 h-5" /> RETRY
                   </button>
                   <button 
-                    onClick={() => setState(prev => ({ ...prev, isGameOver: false, isMenuOpen: true }))}
+                    onClick={() => { setIsMenuPanelOpen(false); setState(prev => ({ ...prev, isGameOver: false, isMenuOpen: true })); }}
                     className="px-6 py-4 bg-slate-800 text-white font-black rounded-xl flex items-center justify-center gap-2 hover:bg-slate-700 transition-all active:scale-95"
                   >
                     <X className="w-5 h-5" /> MENU
