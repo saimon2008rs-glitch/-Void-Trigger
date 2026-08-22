@@ -43,6 +43,10 @@ export default function App() {
 
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [controls, setControls] = useState({ left: false, right: false, fire: false });
+
+  const POWERUP_COSTS = { slowmo: 10, double: 15, shield: 20, mega: 25, bot: 30 };
+  const POWERUP_LABELS = { slowmo: 'Slow-Mo', double: '2X XP', shield: 'Shield', mega: 'Mega', bot: 'Bot' };
+  const POWERUP_DURATION = 15000;
   
   const startGame = (phaseNum) => {
     setState(prev => ({
@@ -54,9 +58,20 @@ export default function App() {
       isGameOver: false,
       isMenuOpen: false,
       currentPhase: phaseNum,
-      level: phaseNum,
-      activePowerUps: { slowmo: 0, double: 0, shield: 0, mega: 0, bot: 0 }
+      level: 1
     }));
+  };
+
+  const buyPowerUp = (powerUp) => {
+    const cost = POWERUP_COSTS[powerUp];
+    if (state.coins < cost) return;
+    const expiresAt = Date.now() + POWERUP_DURATION;
+    setState(prev => ({
+      ...prev,
+      coins: prev.coins - cost,
+      activePowerUps: { ...prev.activePowerUps, [powerUp]: expiresAt }
+    }));
+    localStorage.setItem('coins', String(state.coins - cost));
   };
 
   const handleScoreUpdate = useCallback((points) => {
@@ -96,17 +111,10 @@ export default function App() {
   }, []);
 
   const handleDamage = useCallback(() => {
-    setState(prev => {
-      const newLives = prev.lives - 1;
-      if (newLives <= 0) {
-        handleGameOver();
-        return { ...prev, lives: 0 };
-      }
-      return { ...prev, lives: newLives };
-    });
+    setState(prev => ({ ...prev, lives: Math.max(0, prev.lives - 1) }));
   }, []);
 
-  const handleGameOver = useCallback(async () => {
+  const handleGameOver = useCallback(() => {
     setState(prev => {
       const isNewHighScore = prev.score > prev.highScore;
       if (isNewHighScore) {
@@ -114,7 +122,6 @@ export default function App() {
       }
 
       // Requisito para desbloquear próxima fase: 1000 pontos na fase atual
-      const nextPhase = prev.currentPhase + 1;
       let newUnlocked = prev.unlockedPhases;
       if (prev.score >= 1000 && prev.currentPhase === prev.unlockedPhases) {
         newUnlocked = Math.min(10, prev.unlockedPhases + 1);
@@ -130,9 +137,13 @@ export default function App() {
       };
     });
 
-  }, [state.score]);
+  }, []);
 
-
+  useEffect(() => {
+    if (state.isActive && (state.timeLeft <= 0 || state.lives <= 0)) {
+      handleGameOver();
+    }
+  }, [state.isActive, state.timeLeft, state.lives, handleGameOver]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -162,16 +173,12 @@ export default function App() {
     if (state.isActive && state.timeLeft > 0) {
       timer = window.setInterval(() => {
         setState(prev => {
-          if (prev.timeLeft <= 1) {
-            handleGameOver();
-            return { ...prev, timeLeft: 0 };
-          }
-          return { ...prev, timeLeft: prev.timeLeft - 1 };
+          return { ...prev, timeLeft: Math.max(0, prev.timeLeft - 1) };
         });
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [state.isActive, state.timeLeft, handleGameOver]);
+  }, [state.isActive]);
 
   const now = Date.now();
   const isSlowMo = state.activePowerUps.slowmo > now;
@@ -329,6 +336,21 @@ export default function App() {
                   <span className="text-2xl font-mono font-bold text-amber-400">{state.coins}</span>
                 </div>
               </div>
+              <div className="mt-8 w-full max-w-2xl">
+                <h2 className="text-center text-xs uppercase tracking-[0.25em] text-slate-500 font-black mb-3">Power-ups — duração: 15s</h2>
+                <div className="grid grid-cols-2 md:grid-cols-5 gap-2">
+                  {Object.entries(POWERUP_COSTS).map(([powerUp, cost]) => (
+                    <button
+                      key={powerUp}
+                      onClick={() => buyPowerUp(powerUp)}
+                      disabled={state.coins < cost}
+                      className="rounded-xl border border-cyan-500/30 bg-slate-900/70 px-2 py-2 text-[10px] font-bold uppercase tracking-wide text-cyan-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      {POWERUP_LABELS[powerUp]}<br /><span className="text-amber-400">{cost} moedas</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           </motion.div>
         )}
@@ -338,10 +360,8 @@ export default function App() {
         {state.isActive && (
           <GameCanvas 
             onScoreUpdate={handleScoreUpdate}
-            onGameOver={handleGameOver}
             onDamage={handleDamage}
             isActive={state.isActive}
-            level={state.level}
             isSlowMo={isSlowMo}
             isDoublePoints={isDouble}
             isShield={state.activePowerUps.shield > now}

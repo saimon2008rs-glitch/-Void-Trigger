@@ -3,10 +3,8 @@ import { TARGET_RADIUS, COLORS } from '../constants';
 
 const GameCanvas = ({ 
   onScoreUpdate, 
-  onGameOver,
   onDamage,
   isActive, 
-  level,
   isSlowMo,
   isDoublePoints,
   isShield,
@@ -27,17 +25,22 @@ const GameCanvas = ({
   const lastFireRef = useRef(0);
   const lastBotClickRef = useRef(0);
   const controlsRef = useRef(controls);
+  const gameStateRef = useRef({ isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onDamage });
 
   useEffect(() => {
     controlsRef.current = controls;
   }, [controls]);
+
+  useEffect(() => {
+    gameStateRef.current = { isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onDamage };
+  }, [isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onDamage]);
 
   const spawnTarget = () => {
     const width = window.innerWidth;
     const height = window.innerHeight;
     const side = Math.floor(Math.random() * 3); // Apenas 3 lados: Cima, Direita, Esquerda
     let x, y, vx, vy;
-    const speed = 2 + level * 1.2;
+    const speed = 2 + currentPhase * 1.2;
     const currentRadius = isMega ? TARGET_RADIUS * 2 : TARGET_RADIUS;
 
     if (side === 0) { // Top
@@ -94,7 +97,8 @@ const GameCanvas = ({
   };
 
   const update = (time) => {
-    if (!isActive) return;
+    const gameState = gameStateRef.current;
+    if (!gameState.isActive) return;
 
     const canvas = canvasRef.current;
     const ctx = canvas?.getContext('2d');
@@ -102,18 +106,18 @@ const GameCanvas = ({
 
     // Spawn logic
     // Spawn fica mais rápido a cada fase
-    if (time - lastSpawnRef.current > Math.max(150, 1000 - level * 150)) {
+    if (time - lastSpawnRef.current > Math.max(150, 1000 - currentPhase * 150)) {
       spawnTarget();
       lastSpawnRef.current = time;
     }
 
     // Bot logic
-    if (isBot && time - lastBotClickRef.current > 300) {
+    if (gameState.isBot && time - lastBotClickRef.current > 300) {
       if (targetsRef.current.length > 0) {
         const target = targetsRef.current[0];
         if (target.type !== 'penalty') {
-          let finalPoints = isDoublePoints ? target.points * 2 : target.points;
-          onScoreUpdate(finalPoints);
+          let finalPoints = gameState.isDoublePoints ? target.points * 2 : target.points;
+          gameState.onScoreUpdate(finalPoints);
           createExplosion(target.x, target.y, target.color);
           targetsRef.current.shift();
           lastBotClickRef.current = time;
@@ -149,20 +153,20 @@ const GameCanvas = ({
     }
 
     // Slow mo effect overlay
-    if (isSlowMo) {
+    if (gameState.isSlowMo) {
       ctx.fillStyle = 'rgba(56, 189, 248, 0.1)';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
     }
     
     // Shield effect overlay
-    if (isShield) {
+    if (gameState.isShield) {
       ctx.strokeStyle = 'rgba(16, 185, 129, 0.3)';
       ctx.lineWidth = 10;
       ctx.strokeRect(0, 0, canvas.width, canvas.height);
     }
 
     // Grid effect
-    ctx.strokeStyle = isSlowMo ? 'rgba(56, 189, 248, 0.1)' : 'rgba(255, 255, 255, 0.05)';
+    ctx.strokeStyle = gameState.isSlowMo ? 'rgba(56, 189, 248, 0.1)' : 'rgba(255, 255, 255, 0.05)';
     ctx.lineWidth = 1;
     for (let i = 0; i < canvas.width; i += 50) {
       ctx.beginPath();
@@ -187,9 +191,8 @@ const GameCanvas = ({
       targetsRef.current = targetsRef.current.filter(target => {
         const dist = Math.sqrt((bullet.x - target.x) ** 2 + (bullet.y - target.y) ** 2);
         if (dist < target.radius + 10) {
-          let finalPoints = isDoublePoints ? target.points * 2 : target.points;
-          if (isShield && target.type === 'penalty') finalPoints = 0;
-          onScoreUpdate(finalPoints);
+          const finalPoints = gameState.isDoublePoints ? target.points * 2 : target.points;
+          gameState.onScoreUpdate(finalPoints);
           createExplosion(target.x, target.y, target.color);
           bullet.toRemove = true;
           return false;
@@ -201,14 +204,15 @@ const GameCanvas = ({
 
     // Update targets
     targetsRef.current.forEach(target => {
-      const speedMult = isSlowMo ? 0.3 : 1;
+      const speedMult = gameState.isSlowMo ? 0.3 : 1;
       target.x += target.vx * speedMult;
       target.y += target.vy * speedMult;
 
       // Check collision with ship
+      const shipCollisionRadius = 50;
       const distToShip = Math.sqrt((target.x - shipRef.current.x) ** 2 + (target.y - shipRef.current.y) ** 2);
-      if (distToShip < target.radius + 20) {
-        onDamage();
+      if (distToShip < target.radius + shipCollisionRadius) {
+        if (!gameState.isShield) gameState.onDamage();
         createExplosion(target.x, target.y, target.color);
         target.toRemove = true;
       }
@@ -297,15 +301,27 @@ const GameCanvas = ({
   }, [currentPhase]);
 
   useEffect(() => {
+    const canvas = canvasRef.current;
+    const resizeCanvas = () => {
+      if (!canvas) return;
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      shipRef.current.x = Math.min(Math.max(shipRef.current.x, 30), window.innerWidth - 30);
+      shipRef.current.y = window.innerHeight - 100;
+    };
+    resizeCanvas();
+    window.addEventListener('resize', resizeCanvas);
+
     if (isActive) {
       requestRef.current = requestAnimationFrame(update);
     } else {
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     }
     return () => {
+      window.removeEventListener('resize', resizeCanvas);
       if (requestRef.current) cancelAnimationFrame(requestRef.current);
     };
-  }, [isActive, level]);
+  }, [isActive, currentPhase]);
 
   return (
     <canvas
