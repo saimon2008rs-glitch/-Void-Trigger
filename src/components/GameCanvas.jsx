@@ -16,6 +16,7 @@ const GameCanvas = ({
   const canvasRef = useRef(null);
   const targetsRef = useRef([]);
   const bulletsRef = useRef([]);
+  const enemyBulletsRef = useRef([]);
   const particlesRef = useRef([]);
   const shipRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight - 100 });
   const shipImageRef = useRef(null);
@@ -79,7 +80,9 @@ const GameCanvas = ({
     const randomId = globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
     const newTarget = {
       id: randomId,
-      x, y, vx, vy, radius: currentRadius, points, type, color
+      x, y, vx, vy, radius: currentRadius, points, type, color,
+      maxHealth: type === 'bonus' ? 3 : 1,
+      health: type === 'bonus' ? 3 : 1,
     };
 
     targetsRef.current.push(newTarget);
@@ -94,6 +97,20 @@ const GameCanvas = ({
         vy: (Math.random() - 0.5) * 10,
         life: 1,
         color
+      });
+    }
+  };
+
+  const fireEnemyRetaliation = (target) => {
+    const angleToShip = Math.atan2(shipRef.current.y - target.y, shipRef.current.x - target.x);
+    const spread = Math.PI / 8;
+    for (let shot = -2; shot <= 2; shot++) {
+      const angle = angleToShip + shot * spread;
+      enemyBulletsRef.current.push({
+        x: target.x,
+        y: target.y,
+        vx: Math.cos(angle) * 5,
+        vy: Math.sin(angle) * 5,
       });
     }
   };
@@ -118,10 +135,14 @@ const GameCanvas = ({
       if (targetsRef.current.length > 0) {
         const target = targetsRef.current[0];
         if (target.type !== 'penalty') {
-          let finalPoints = gameState.isDoublePoints ? target.points * 2 : target.points;
-          gameState.onScoreUpdate(finalPoints);
+          target.health -= 1;
           createExplosion(target.x, target.y, target.color);
-          targetsRef.current.shift();
+          if (target.health <= 0) {
+            const finalPoints = gameState.isDoublePoints ? target.points * 2 : target.points;
+            gameState.onScoreUpdate(finalPoints);
+            if (target.type === 'normal') fireEnemyRetaliation(target);
+            targetsRef.current.shift();
+          }
           lastBotClickRef.current = time;
         }
       }
@@ -183,7 +204,34 @@ const GameCanvas = ({
       ctx.stroke();
     }
 
-    // Update Bullets
+    // Update enemy bullets
+    enemyBulletsRef.current.forEach(bullet => {
+      bullet.x += bullet.vx;
+      bullet.y += bullet.vy;
+      ctx.save();
+      ctx.shadowBlur = 10;
+      ctx.shadowColor = '#ef4444';
+      ctx.fillStyle = '#fca5a5';
+      ctx.beginPath();
+      ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+
+      const distanceToShip = Math.sqrt((bullet.x - shipRef.current.x) ** 2 + (bullet.y - shipRef.current.y) ** 2);
+      if (distanceToShip < 50 + 6) {
+        if (!gameState.isShield && time >= damageCooldownUntilRef.current) {
+          gameState.onDamage();
+          damageCooldownUntilRef.current = time + 1000;
+        }
+        createExplosion(bullet.x, bullet.y, '#ef4444');
+        bullet.toRemove = true;
+      }
+    });
+    enemyBulletsRef.current = enemyBulletsRef.current.filter(bullet => (
+      !bullet.toRemove && bullet.x > -30 && bullet.x < width + 30 && bullet.y > -30 && bullet.y < height + 30
+    ));
+
+    // Update player bullets
     bulletsRef.current.forEach(bullet => {
       bullet.y += bullet.vy;
       ctx.fillStyle = '#fff';
@@ -195,12 +243,18 @@ const GameCanvas = ({
         if (bulletHit) return true;
         const dist = Math.sqrt((bullet.x - target.x) ** 2 + (bullet.y - target.y) ** 2);
         if (dist < target.radius + 10) {
-          const finalPoints = gameState.isDoublePoints ? target.points * 2 : target.points;
-          gameState.onScoreUpdate(finalPoints);
+          target.health -= 1;
           createExplosion(target.x, target.y, target.color);
           bullet.toRemove = true;
           bulletHit = true;
-          return false;
+
+          if (target.health <= 0) {
+            const finalPoints = gameState.isDoublePoints ? target.points * 2 : target.points;
+            gameState.onScoreUpdate(finalPoints);
+            if (target.type === 'normal') fireEnemyRetaliation(target);
+            return false;
+          }
+          return true;
         }
         return true;
       });
@@ -226,7 +280,7 @@ const GameCanvas = ({
         target.toRemove = true;
       }
 
-      // Draw target (sempre uma bola vermelha)
+      // Draw target
       ctx.beginPath();
       ctx.arc(target.x, target.y, target.radius, 0, Math.PI * 2);
       ctx.fillStyle = target.color;
@@ -236,6 +290,21 @@ const GameCanvas = ({
       ctx.strokeStyle = 'white';
       ctx.lineWidth = 2;
       ctx.stroke();
+
+      // Barra de vida exclusiva dos inimigos verdes (bonus)
+      if (target.type === 'bonus') {
+        const barWidth = target.radius * 2;
+        const barHeight = 5;
+        const barX = target.x - barWidth / 2;
+        const barY = target.y + target.radius + 8;
+        ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+        ctx.fillRect(barX, barY, barWidth, barHeight);
+        ctx.fillStyle = '#22c55e';
+        ctx.fillRect(barX, barY, barWidth * (target.health / target.maxHealth), barHeight);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(barX, barY, barWidth, barHeight);
+      }
     });
 
     // Draw Ship
