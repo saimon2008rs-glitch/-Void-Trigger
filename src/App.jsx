@@ -50,6 +50,13 @@ export default function App() {
 
   const POWERUP_COSTS = { slowmo: 10, double: 15, shield: 20, mega: 25, bot: 30 };
   const POWERUP_LABELS = { slowmo: 'Slow-Mo', double: '2X XP', shield: 'Shield', mega: 'Mega', bot: 'Bot' };
+  const POWERUP_DESCRIPTIONS = {
+    slowmo: 'Deixa os inimigos mais lentos.',
+    double: 'Dobra os pontos ganhos.',
+    shield: 'Protege contra colisões.',
+    mega: 'Aumenta o tamanho dos alvos.',
+    bot: 'Atira automaticamente nos alvos.',
+  };
   const POWERUP_DURATION = 15000;
   
   const startGame = (phaseNum) => {
@@ -388,7 +395,7 @@ export default function App() {
                     >
                       <span>
                         <span className="block text-xs font-black uppercase tracking-wide text-cyan-300">{POWERUP_LABELS[powerUp]}</span>
-                        <span className="block text-[10px] text-slate-500">Ativa imediatamente</span>
+                        <span className="block text-[10px] leading-tight text-slate-500">{POWERUP_DESCRIPTIONS[powerUp]}</span>
                       </span>
                       <span className="text-xs font-black text-amber-400">{cost}</span>
                     </button>
