@@ -1,6 +1,6 @@
 // Constantes do jogo — tempo por fase, geometria dos alvos e paleta de cores
 
-export const GAME_DURATION = 120; // tempo de cada fase em segundos
+export const GAME_DURATION = 90; // tempo de cada fase em segundos (1 minuto e 30 segundos)
 export const TARGET_RADIUS = 25;
 export const SPAWN_RATE = 1000; // ms entre spawns base
 
