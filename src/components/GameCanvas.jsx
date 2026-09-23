@@ -3,6 +3,7 @@ import { TARGET_RADIUS, COLORS } from '../constants';
 
 const GameCanvas = ({ 
   onScoreUpdate, 
+  onEnemyDefeated,
   onDamage,
   isActive, 
   isSlowMo,
@@ -82,15 +83,15 @@ const GameCanvas = ({
 
   const getShipY = () => window.innerHeight - Math.max(110, Math.min(150, window.innerHeight * 0.16));
 
-  const gameStateRef = useRef({ isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onDamage });
+  const gameStateRef = useRef({ isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onEnemyDefeated, onDamage });
 
   useEffect(() => {
     controlsRef.current = controls;
   }, [controls]);
 
   useEffect(() => {
-    gameStateRef.current = { isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onDamage };
-  }, [isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onDamage]);
+    gameStateRef.current = { isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onEnemyDefeated, onDamage };
+  }, [isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onEnemyDefeated, onDamage]);
 
   const spawnTarget = () => {
     const width = window.innerWidth;
@@ -203,6 +204,7 @@ const GameCanvas = ({
           if (target.health <= 0) {
             const finalPoints = gameState.isDoublePoints ? target.points * 2 : target.points;
             gameState.onScoreUpdate(finalPoints);
+            gameState.onEnemyDefeated();
             if (target.type === 'normal') fireEnemyRetaliation(target);
             targetsRef.current.shift();
           }
@@ -297,6 +299,7 @@ const GameCanvas = ({
           if (target.health <= 0) {
             const finalPoints = gameState.isDoublePoints ? target.points * 2 : target.points;
             gameState.onScoreUpdate(finalPoints);
+            gameState.onEnemyDefeated();
             if (target.type === 'normal') fireEnemyRetaliation(target);
             return false;
           }

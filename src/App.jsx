@@ -33,6 +33,8 @@ export default function App() {
     isGameOver: false,
     isMenuOpen: true,
     currentPhase: 1,
+    phaseKills: 0,
+    isPhaseComplete: false,
     unlockedPhases: parseInt(localStorage.getItem('unlockedPhases') || '1'),
     level: 1,
     highScore: parseInt(localStorage.getItem('highScore') || '0'),
@@ -65,6 +67,7 @@ export default function App() {
   
   const startGame = (phaseNum) => {
     setIsMenuPanelOpen(false);
+    setControls({ left: false, right: false, fire: false });
     setState(prev => ({
       ...prev,
       score: 0,
@@ -73,6 +76,8 @@ export default function App() {
       isActive: true,
       isPaused: false,
       isGameOver: false,
+      phaseKills: 0,
+      isPhaseComplete: false,
       isMenuOpen: false,
       currentPhase: phaseNum,
       level: 1
@@ -84,7 +89,7 @@ export default function App() {
   const returnToMenu = () => {
     setControls({ left: false, right: false, fire: false });
     setIsMenuPanelOpen(false);
-    setState(prev => ({ ...prev, isActive: false, isPaused: false, isGameOver: false, isMenuOpen: true }));
+    setState(prev => ({ ...prev, isActive: false, isPaused: false, isGameOver: false, isPhaseComplete: false, isMenuOpen: true }));
   };
 
   const setControl = (control, value) => {
@@ -150,6 +155,36 @@ export default function App() {
     setState(prev => ({ ...prev, lives: Math.max(0, prev.lives - 1) }));
   }, []);
 
+  const handleEnemyDefeated = useCallback(() => {
+    setState(prev => {
+      if (prev.isPhaseComplete) return prev;
+      const requiredKills = prev.currentPhase * 10;
+      const phaseKills = Math.min(requiredKills, prev.phaseKills + 1);
+      if (phaseKills < requiredKills) {
+        return { ...prev, phaseKills };
+      }
+
+      const newUnlocked = Math.min(10, Math.max(prev.unlockedPhases, prev.currentPhase + 1));
+      localStorage.setItem('unlockedPhases', newUnlocked.toString());
+      return {
+        ...prev,
+        phaseKills,
+        isActive: false,
+        isPaused: false,
+        isPhaseComplete: true,
+        unlockedPhases: newUnlocked,
+      };
+    });
+  }, []);
+
+  const advanceToNextPhase = () => {
+    if (state.currentPhase >= 10) {
+      returnToMenu();
+      return;
+    }
+    startGame(state.currentPhase + 1);
+  };
+
   const handleGameOver = useCallback(() => {
     setState(prev => {
       const isNewHighScore = prev.score > prev.highScore;
@@ -157,18 +192,10 @@ export default function App() {
         localStorage.setItem('highScore', prev.score.toString());
       }
 
-      // Requisito para desbloquear próxima fase: 1000 pontos na fase atual
-      let newUnlocked = prev.unlockedPhases;
-      if (prev.score >= 1000 && prev.currentPhase === prev.unlockedPhases) {
-        newUnlocked = Math.min(10, prev.unlockedPhases + 1);
-        localStorage.setItem('unlockedPhases', newUnlocked.toString());
-      }
-
       return {
         ...prev,
         isActive: false,
         isGameOver: true,
-        unlockedPhases: newUnlocked,
         highScore: isNewHighScore ? prev.score : prev.highScore,
       };
     });
@@ -262,6 +289,9 @@ export default function App() {
                 <div className="flex items-center gap-2">
                   <Star className="w-4 h-4 text-purple-400 fill-purple-400" />
                   <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 sm:text-xs">Phase {state.currentPhase}</span>
+                  <span className="rounded-full border border-purple-400/30 bg-purple-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-purple-200 sm:text-[10px]">
+                    {state.phaseKills}/{state.currentPhase * 10} eliminações
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-4">
                   <div className="mr-1 flex items-center gap-1 sm:mr-4 sm:gap-2">
@@ -353,6 +383,48 @@ export default function App() {
                 <button type="button" onClick={() => setState(prev => ({ ...prev, isPaused: false }))} className="rounded-xl bg-purple-600 px-5 py-3 font-black text-white transition-colors hover:bg-purple-500">Continuar</button>
                 <button type="button" onClick={restartGame} className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/10 px-5 py-3 font-black text-white transition-colors hover:bg-white/20"><RotateCcw className="h-4 w-4" /> Recomeçar fase</button>
                 <button type="button" onClick={returnToMenu} className="flex items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 px-5 py-3 font-black text-slate-300 transition-colors hover:bg-white/10"><Home className="h-4 w-4" /> Voltar ao menu</button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {state.isPhaseComplete && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/85 p-4 backdrop-blur-md sm:p-6"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="w-full max-w-md rounded-3xl border border-emerald-400/30 bg-slate-900/95 p-6 text-center shadow-2xl sm:p-10"
+            >
+              <Trophy className="mx-auto mb-4 h-12 w-12 text-emerald-400" />
+              <h2 className="mb-2 text-3xl font-black uppercase italic tracking-tight text-white sm:text-4xl">
+                {state.currentPhase >= 10 ? 'Jogo concluído' : `Fase ${state.currentPhase} concluída`}
+              </h2>
+              <p className="mb-7 text-sm text-slate-400 sm:text-base">
+                Você eliminou <span className="font-black text-emerald-400">{state.phaseKills}</span> inimigos.
+                {state.currentPhase < 10 && ` A fase ${state.currentPhase + 1} exige ${(state.currentPhase + 1) * 10} eliminações.`}
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  type="button"
+                  onClick={advanceToNextPhase}
+                  className="rounded-xl bg-emerald-500 px-5 py-3 font-black text-slate-950 transition-colors hover:bg-emerald-400"
+                >
+                  {state.currentPhase >= 10 ? 'Voltar ao menu' : `Avançar para a fase ${state.currentPhase + 1}`}
+                </button>
+                <button
+                  type="button"
+                  onClick={returnToMenu}
+                  className="rounded-xl border border-white/10 bg-white/5 px-5 py-3 font-black text-slate-300 transition-colors hover:bg-white/10"
+                >
+                  Menu principal
+                </button>
               </div>
             </motion.div>
           </motion.div>
@@ -514,7 +586,7 @@ export default function App() {
             </div>
 
             <div className="mt-12 text-center max-w-md">
-              <p className="mb-4 text-xs text-slate-400 sm:text-sm">Alcance <span className="font-bold text-white">1000 pontos</span> na fase atual para desbloquear a próxima. A velocidade dos alvos aumenta a cada fase.</p>
+              <p className="mb-4 text-xs text-slate-400 sm:text-sm">Elimine <span className="font-bold text-white">{state.currentPhase * 10} inimigos</span> na fase atual para avançar. A velocidade dos alvos aumenta a cada fase.</p>
               <div className="flex justify-center gap-6 sm:gap-8">
                 <div className="flex flex-col">
                   <span className="text-slate-600 text-[10px] uppercase font-bold">Recorde</span>
@@ -535,6 +607,7 @@ export default function App() {
         {state.isActive && (
           <GameCanvas 
             onScoreUpdate={handleScoreUpdate}
+            onEnemyDefeated={handleEnemyDefeated}
             onDamage={handleDamage}
             isActive={state.isActive && !state.isPaused}
             isSlowMo={isSlowMo}

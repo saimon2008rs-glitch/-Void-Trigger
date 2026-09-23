@@ -9,7 +9,7 @@ Site publicado: [saimon2008rs-glitch.github.io/-Void-Trigger](https://saimon2008
 - **Desktop:** setas `←` `→` para mover a nave e `Espaço` / `↑` para atirar.
 - **Mobile:** botões touch de direção (canto inferior esquerdo) e tiro (canto inferior direito).
 - Acerte os alvos **vermelhos (+10)**, não deixe nenhum alvo colidir com a nave — você tem **3 vidas**.
-- Complete **1 minuto e 30 segundos** de fase e destrave a próxima ao atingir **1.000 pontos** (máximo de 10 fases).
+- Complete **1 minuto e 30 segundos** de fase e elimine **10 inimigos por fase** (20 na fase 2, 30 na fase 3 e assim por diante) para avançar, até o máximo de 10 fases.
 - Acertar alvos gera **moedas** e aumenta sua pontuação; suba de nível para receber o aviso de *Level Up*.
 
 ## Características
