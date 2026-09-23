@@ -87,6 +87,24 @@ export default function App() {
     setState(prev => ({ ...prev, isActive: false, isPaused: false, isGameOver: false, isMenuOpen: true }));
   };
 
+  const setControl = (control, value) => {
+    setControls(prev => ({ ...prev, [control]: value }));
+  };
+
+  const getPointerHandlers = (control) => ({
+    onPointerDown: (event) => {
+      event.preventDefault();
+      event.currentTarget.setPointerCapture?.(event.pointerId);
+      setControl(control, true);
+    },
+    onPointerUp: (event) => {
+      event.preventDefault();
+      setControl(control, false);
+    },
+    onPointerCancel: () => setControl(control, false),
+    onLostPointerCapture: () => setControl(control, false),
+  });
+
   const buyPowerUp = (powerUp) => {
     const cost = POWERUP_COSTS[powerUp];
     if (state.coins < cost) return;
@@ -220,10 +238,10 @@ export default function App() {
   const isBot = state.activePowerUps.bot > now;
 
   return (
-    <div className="fixed inset-0 bg-slate-950 text-slate-100 font-sans overflow-hidden select-none">
+    <div className="fixed inset-0 overflow-hidden overscroll-none bg-slate-950 font-sans text-slate-100 select-none">
       {/* HUD de Jogo em Tela Cheia */}
       {state.isActive && (
-        <div className="absolute inset-0 z-10 pointer-events-none p-4 md:p-8 flex flex-col justify-between">
+        <div className="pointer-events-none absolute inset-0 z-10 flex flex-col justify-between p-3 sm:p-4 md:p-8">
         <div className="pointer-events-auto self-start">
           <button
             type="button"
@@ -237,27 +255,27 @@ export default function App() {
           {/* Top Bar - Barra de Nível e Stats */}
           <div className="w-full flex flex-col items-center gap-2">
             <div className="w-full max-w-2xl">
-              <div className="flex justify-between items-end mb-1 px-1">
+              <div className="mb-1 flex items-end justify-between gap-2 px-1">
                 <div className="flex items-center gap-2">
                   <Star className="w-4 h-4 text-purple-400 fill-purple-400" />
-                  <span className="text-xs uppercase tracking-widest text-purple-400 font-black">Phase {state.currentPhase}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 sm:text-xs">Phase {state.currentPhase}</span>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2 mr-4">
+                <div className="flex items-center gap-2 sm:gap-4">
+                  <div className="mr-1 flex items-center gap-1 sm:mr-4 sm:gap-2">
                     {[...Array(3)].map((_, i) => (
                       <Heart 
                         key={i} 
-                        className={`w-6 h-6 ${i < state.lives ? 'text-red-500 fill-red-500' : 'text-slate-700'}`} 
+                        className={`h-4 w-4 sm:h-6 sm:w-6 ${i < state.lives ? 'fill-red-500 text-red-500' : 'text-slate-700'}`}
                       />
                     ))}
                   </div>
                   <div className="flex items-center gap-1">
-                    <Trophy className="w-4 h-4 text-yellow-500" />
-                    <span className="text-xl font-mono font-black text-yellow-500">{state.score}</span>
+                    <Trophy className="h-3.5 w-3.5 text-yellow-500 sm:h-4 sm:w-4" />
+                    <span className="font-mono text-base font-black text-yellow-500 sm:text-xl">{state.score}</span>
                   </div>
                   <div className="flex items-center gap-1">
-                    <Timer className={`w-4 h-4 ${state.timeLeft < 10 ? 'text-red-500 animate-pulse' : 'text-emerald-400'}`} />
-                    <span className={`text-xl font-mono font-black ${state.timeLeft < 10 ? 'text-red-500' : 'text-emerald-400'}`}>{state.timeLeft}s</span>
+                    <Timer className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${state.timeLeft < 10 ? 'animate-pulse text-red-500' : 'text-emerald-400'}`} />
+                    <span className={`font-mono text-base font-black sm:text-xl ${state.timeLeft < 10 ? 'text-red-500' : 'text-emerald-400'}`}>{state.timeLeft}s</span>
                   </div>
                 </div>
               </div>
@@ -272,7 +290,7 @@ export default function App() {
             </div>
 
             {/* Powerups Ativos */}
-            <div className="flex gap-2">
+            <div className="flex max-w-[calc(100vw-1.5rem)] flex-wrap justify-center gap-1.5 sm:gap-2">
               <AnimatePresence>
                 {isSlowMo && (
                   <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="px-3 py-1 bg-blue-500/20 border border-blue-500/50 rounded-full flex items-center gap-2 text-[10px] text-blue-400 backdrop-blur-sm">
@@ -304,7 +322,7 @@ export default function App() {
           </div>
 
           {/* Legenda de Alvos (Canto Superior Direito) */}
-          <div className="absolute top-4 right-4 md:top-8 md:right-8 bg-slate-900/60 backdrop-blur-xl p-4 md:p-6 rounded-3xl border border-white/20 flex flex-col gap-3 md:gap-4 shadow-2xl">
+          <div className="absolute right-4 top-4 hidden flex-col gap-3 rounded-3xl border border-white/20 bg-slate-900/60 p-4 shadow-2xl backdrop-blur-xl md:flex md:right-8 md:top-8 md:gap-4 md:p-6">
             <div className="flex items-center gap-4">
               <div className="w-3.5 h-3.5 md:w-4 md:h-4 rounded-full bg-red-500 shadow-[0_0_12px_rgba(239,68,68,0.6)]" />
               <span className="text-xs md:text-sm font-black text-slate-100 uppercase tracking-widest">Normal (+10)</span>
@@ -353,12 +371,12 @@ export default function App() {
             initial={{ opacity: 0, y: 50, scale: 0.5 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, scale: 1.5 }}
-            className="fixed top-1/4 z-50 pointer-events-none"
+            className="pointer-events-none fixed inset-x-4 top-1/4 z-50"
           >
-            <div className="bg-gradient-to-b from-purple-500 to-pink-600 p-8 rounded-3xl shadow-[0_0_50px_rgba(168,85,247,0.5)] border-4 border-white flex flex-col items-center gap-2">
-              <ChevronUp className="w-12 h-12 text-white animate-bounce" />
-              <h2 className="text-5xl font-black text-white uppercase italic tracking-tighter">Level Up!</h2>
-              <span className="text-2xl font-bold text-white/90">Nível {state.level}</span>
+            <div className="flex flex-col items-center gap-2 rounded-3xl border-4 border-white bg-gradient-to-b from-purple-500 to-pink-600 p-5 shadow-[0_0_50px_rgba(168,85,247,0.5)] sm:p-8">
+              <ChevronUp className="h-10 w-10 animate-bounce text-white sm:h-12 sm:w-12" />
+              <h2 className="text-3xl font-black uppercase italic tracking-tighter text-white sm:text-5xl">Level Up!</h2>
+              <span className="text-xl font-bold text-white/90 sm:text-2xl">Nível {state.level}</span>
             </div>
           </motion.div>
         )}
@@ -462,21 +480,21 @@ export default function App() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] bg-slate-950 flex flex-col items-center justify-center p-6 overflow-y-auto bg-cover bg-center bg-no-repeat"
+            className="fixed inset-0 z-[60] flex min-h-[100dvh] flex-col items-center justify-center overflow-y-auto bg-slate-950 bg-cover bg-center bg-no-repeat p-4 sm:p-6"
             style={{ backgroundImage: "linear-gradient(rgba(15, 23, 42, 0.8), rgba(15, 23, 42, 0.9)), url('menu-bg.jpg')" }}
           >
             <motion.div 
               initial={{ y: -50 }}
               animate={{ y: 0 }}
-              className="text-center mb-12"
+              className="mb-8 text-center sm:mb-12"
             >
-              <h1 className="text-8xl font-black text-transparent bg-clip-text bg-gradient-to-b from-purple-400 to-purple-700 uppercase italic tracking-tighter mb-2">
+              <h1 className="mb-2 text-5xl font-black uppercase italic tracking-tighter text-transparent bg-gradient-to-b from-purple-400 to-purple-700 bg-clip-text sm:text-7xl md:text-8xl">
                 Void Trigger
               </h1>
-              <p className="text-slate-500 tracking-[0.3em] uppercase font-bold">Deep Space Target Protocol</p>
+              <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 sm:text-xs sm:tracking-[0.3em]">Deep Space Target Protocol</p>
             </motion.div>
 
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 w-full max-w-4xl">
+            <div className="grid w-full max-w-4xl grid-cols-2 gap-3 sm:gap-4 md:grid-cols-5">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((phase) => {
                 const isUnlocked = phase <= state.unlockedPhases;
                 return (
@@ -501,8 +519,8 @@ export default function App() {
             </div>
 
             <div className="mt-12 text-center max-w-md">
-              <p className="text-slate-400 text-sm mb-4">Alcance <span className="text-white font-bold">1000 pontos</span> na fase atual para desbloquear a próxima. A velocidade dos alvos aumenta a cada fase.</p>
-              <div className="flex justify-center gap-8">
+              <p className="mb-4 text-xs text-slate-400 sm:text-sm">Alcance <span className="font-bold text-white">1000 pontos</span> na fase atual para desbloquear a próxima. A velocidade dos alvos aumenta a cada fase.</p>
+              <div className="flex justify-center gap-6 sm:gap-8">
                 <div className="flex flex-col">
                   <span className="text-slate-600 text-[10px] uppercase font-bold">Recorde</span>
                   <span className="text-2xl font-mono font-bold text-purple-400">{state.highScore}</span>
@@ -536,41 +554,32 @@ export default function App() {
 
         {/* Mobile Controls Overlay */}
         {state.isActive && !state.isPaused && (
-          <div className="absolute inset-x-0 bottom-0 z-20 pointer-events-none p-6 md:p-12 flex justify-between items-end">
-            <div className="flex gap-4 pointer-events-auto">
-              <button 
-                onMouseDown={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: true })); }}
-                onMouseUp={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
-                onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
-                onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: true })); }}
-                onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
-                onTouchCancel={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, left: false })); }}
-                className="w-20 h-20 md:w-24 md:h-24 bg-slate-900/60 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-white/20 active:bg-purple-600/80 transition-all active:scale-90"
+          <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 flex items-end justify-between gap-3 p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))] sm:p-6 md:p-12">
+            <div className="pointer-events-auto flex gap-2 sm:gap-4">
+              <button
+                type="button"
+                aria-label="Mover nave para a esquerda"
+                {...getPointerHandlers('left')}
+                className="flex h-14 w-14 touch-none items-center justify-center rounded-full border-2 border-white/20 bg-slate-900/70 backdrop-blur-md transition-all active:scale-90 active:bg-purple-600/80 sm:h-20 sm:w-20 md:h-24 md:w-24"
               >
-                <ChevronUp className="w-10 h-10 -rotate-90 text-white" />
+                <ChevronUp className="h-7 w-7 -rotate-90 text-white sm:h-10 sm:w-10" />
               </button>
-              <button 
-                onMouseDown={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: true })); }}
-                onMouseUp={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
-                onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
-                onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: true })); }}
-                onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
-                onTouchCancel={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, right: false })); }}
-                className="w-20 h-20 md:w-24 md:h-24 bg-slate-900/60 backdrop-blur-md rounded-full flex items-center justify-center border-2 border-white/20 active:bg-purple-600/80 transition-all active:scale-90"
+              <button
+                type="button"
+                aria-label="Mover nave para a direita"
+                {...getPointerHandlers('right')}
+                className="flex h-14 w-14 touch-none items-center justify-center rounded-full border-2 border-white/20 bg-slate-900/70 backdrop-blur-md transition-all active:scale-90 active:bg-purple-600/80 sm:h-20 sm:w-20 md:h-24 md:w-24"
               >
-                <ChevronUp className="w-10 h-10 rotate-90 text-white" />
+                <ChevronUp className="h-7 w-7 rotate-90 text-white sm:h-10 sm:w-10" />
               </button>
             </div>
-            <button 
-              onMouseDown={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: true })); }}
-              onMouseUp={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
-              onMouseLeave={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
-              onTouchStart={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: true })); }}
-              onTouchEnd={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
-              onTouchCancel={(e) => { e.preventDefault(); setControls(prev => ({ ...prev, fire: false })); }}
-              className="w-24 h-24 md:w-28 md:h-28 bg-red-600/60 backdrop-blur-md rounded-full flex items-center justify-center border-4 border-white/30 active:bg-red-500 shadow-[0_0_30px_rgba(220,38,38,0.3)] transition-all active:scale-90 pointer-events-auto"
+            <button
+              type="button"
+              aria-label="Atirar"
+              {...getPointerHandlers('fire')}
+              className="pointer-events-auto flex h-[4.5rem] w-[4.5rem] touch-none items-center justify-center rounded-full border-4 border-white/30 bg-red-600/70 shadow-[0_0_30px_rgba(220,38,38,0.3)] backdrop-blur-md transition-all active:scale-90 active:bg-red-500 sm:h-24 sm:w-24 md:h-28 md:w-28"
             >
-              <Zap className="w-10 h-10 text-white" />
+              <Zap className="h-8 w-8 text-white sm:h-10 sm:w-10" />
             </button>
           </div>
         )}
@@ -582,11 +591,11 @@ export default function App() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="fixed inset-0 z-50 bg-slate-950/90 backdrop-blur-xl flex items-center justify-center p-6"
+              className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/90 p-4 backdrop-blur-xl sm:p-6"
             >
-              <div className="bg-slate-900 p-12 rounded-3xl border-2 border-white/10 text-center max-w-md w-full shadow-[0_0_100px_rgba(0,0,0,0.5)]">
-                <h2 className="text-6xl font-black text-white uppercase italic tracking-tighter mb-4">Mission Over</h2>
-                <div className="flex flex-col gap-2 mb-8">
+              <div className="w-full max-w-md rounded-3xl border-2 border-white/10 bg-slate-900 p-6 text-center shadow-[0_0_100px_rgba(0,0,0,0.5)] sm:p-12">
+                <h2 className="mb-4 text-4xl font-black uppercase italic tracking-tighter text-white sm:text-6xl">Mission Over</h2>
+                <div className="mb-6 flex flex-col gap-2 sm:mb-8">
                   <div className="flex justify-between text-slate-400 font-bold uppercase tracking-widest text-xs">
                     <span>Score</span>
                     <span className="text-white font-mono">{state.score}</span>
@@ -597,7 +606,7 @@ export default function App() {
                   </div>
                 </div>
                 
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                   <button 
                     onClick={() => startGame(state.currentPhase)}
                     className="px-6 py-4 bg-white text-slate-950 font-black rounded-xl flex items-center justify-center gap-2 hover:bg-slate-200 transition-all active:scale-95"

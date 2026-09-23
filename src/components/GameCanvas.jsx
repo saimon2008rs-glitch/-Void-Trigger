@@ -18,7 +18,7 @@ const GameCanvas = ({
   const bulletsRef = useRef([]);
   const enemyBulletsRef = useRef([]);
   const particlesRef = useRef([]);
-  const shipRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight - 100 });
+  const shipRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight - 120 });
   const shipImageRef = useRef(null);
   const phaseBgImageRef = useRef(null);
   const requestRef = useRef(null);
@@ -79,6 +79,9 @@ const GameCanvas = ({
     gridLayerRef.current = { canvas: layer, width, height, slowMo };
     return layer;
   };
+
+  const getShipY = () => window.innerHeight - Math.max(110, Math.min(150, window.innerHeight * 0.16));
+
   const gameStateRef = useRef({ isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onDamage });
 
   useEffect(() => {
@@ -432,7 +435,7 @@ const GameCanvas = ({
       backgroundLayerRef.current = null;
       gridLayerRef.current = { canvas: null, width: 0, height: 0, slowMo: null };
       shipRef.current.x = Math.min(Math.max(shipRef.current.x, 30), window.innerWidth - 30);
-      shipRef.current.y = window.innerHeight - 100;
+      shipRef.current.y = getShipY();
     };
     resizeCanvas();
     window.addEventListener('resize', resizeCanvas);
@@ -454,7 +457,8 @@ const GameCanvas = ({
       ref={canvasRef}
       width={window.innerWidth}
       height={window.innerHeight}
-      className="w-full h-full cursor-crosshair bg-slate-900"
+      aria-label="Área de jogo Void Trigger"
+      className="block h-full w-full cursor-crosshair bg-slate-900"
       id="game-canvas"
       style={{ touchAction: 'none' }}
     />
