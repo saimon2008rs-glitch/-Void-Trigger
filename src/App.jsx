@@ -53,7 +53,7 @@ export default function App() {
   const previousLevelRef = useRef(1);
 
   const POWERUP_COSTS = { slowmo: 10, double: 15, shield: 20, mega: 25, bot: 30 };
-  const POWERUP_LABELS = { slowmo: 'Slow-Mo', double: '2X XP', shield: 'Shield', mega: 'Mega', bot: 'Bot' };
+  const POWERUP_LABELS = { slowmo: 'Slow-Mo', double: '2X PONTOS', shield: 'Shield', mega: 'Mega', bot: 'Bot' };
   const POWERUP_DESCRIPTIONS = {
     slowmo: 'Deixa os inimigos mais lentos.',
     double: 'Dobra os pontos ganhos.',
@@ -120,8 +120,7 @@ export default function App() {
   const handleScoreUpdate = useCallback((points) => {
     setState(prev => {
       const newScore = Math.max(0, prev.score + points);
-      // Níveis agora escalam: Nível 1 (0-500), Nível 2 (500-1200), Nível 3 (1200-2100)...
-      // Fórmula: XP necessário = Nível * 500 + (Nível-1) * 200
+      // Níveis agora escalam com a pontuação: Nível 1 (0-500), Nível 2 (500-1200), Nível 3 (1200-2100)...
       const calculateLevel = (score) => {
         let lvl = 1;
         let threshold = 500;
@@ -252,7 +251,7 @@ export default function App() {
             {state.isPaused ? <Play className="h-6 w-6" /> : <Pause className="h-6 w-6" />}
           </button>
         </div>
-          {/* Top Bar - Barra de Nível e Stats */}
+          {/* Top Bar - Estatísticas da partida */}
           <div className="w-full flex flex-col items-center gap-2">
             <div className="w-full max-w-2xl">
               <div className="mb-1 flex items-end justify-between gap-2 px-1">
@@ -279,14 +278,6 @@ export default function App() {
                   </div>
                 </div>
               </div>
-              <div className="w-full h-3 bg-slate-900/80 rounded-full overflow-hidden border border-white/10 backdrop-blur-md">
-                <motion.div 
-                  className="h-full bg-gradient-to-r from-purple-500 via-pink-500 to-purple-500"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(100, (state.score / 1000) * 100)}%` }}
-                  transition={{ type: "spring", stiffness: 50 }}
-                />
-              </div>
             </div>
 
             {/* Powerups Ativos */}
@@ -299,7 +290,7 @@ export default function App() {
                 )}
                 {isDouble && (
                   <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.8 }} className="px-3 py-1 bg-yellow-500/20 border border-yellow-500/50 rounded-full flex items-center gap-2 text-[10px] text-yellow-400 backdrop-blur-sm">
-                    <Zap className="w-3 h-3" /> 2X XP
+                    <Zap className="w-3 h-3" /> 2X PONTOS
                   </motion.div>
                 )}
                 {isShield && (

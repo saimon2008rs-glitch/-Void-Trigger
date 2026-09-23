@@ -9,16 +9,16 @@ Site publicado: [saimon2008rs-glitch.github.io/-Void-Trigger](https://saimon2008
 - **Desktop:** setas `←` `→` para mover a nave e `Espaço` / `↑` para atirar.
 - **Mobile:** botões touch de direção (canto inferior esquerdo) e tiro (canto inferior direito).
 - Acerte os alvos **vermelhos (+10)**, não deixe nenhum alvo colidir com a nave — você tem **3 vidas**.
-- Complete **2 minutos** de fase e destrave a próxima ao atingir **1.000 pontos** (máximo de 10 fases).
-- Acertar alvos gera **moedas** e XP; suba de nível para ver a barra de progresso e o aviso de *Level Up*.
+- Complete **1 minuto e 30 segundos** de fase e destrave a próxima ao atingir **1.000 pontos** (máximo de 10 fases).
+- Acertar alvos gera **moedas** e aumenta sua pontuação; suba de nível para receber o aviso de *Level Up*.
 
 ## Características
 
 - 10 fases com dificuldade progressiva (velocidade e frequência de spawn crescem a cada fase)
-- Sistema de níveis com XP crescente e notificação de Level Up
+- Sistema de níveis baseado na pontuação e notificação de Level Up
 - 3 vidas com dano por colisão e 3 tipos de alvos (normal, bônus e penalidade)
 - Moedas acumuladas no navegador (localStorage)
-- Power-ups disponíveis no código (slow-mo, 2x XP, escudo, mega alvo, auto bot)
+- Power-ups disponíveis no código (slow-mo, 2x pontos, escudo, mega alvo, auto bot)
 - Controles responsivos para desktop e mobile
 - Deploy automático no GitHub Pages via GitHub Actions
 
