@@ -251,6 +251,10 @@ export default function App() {
             {state.isPaused ? <Play className="h-6 w-6" /> : <Pause className="h-6 w-6" />}
           </button>
         </div>
+        <div className="pointer-events-none absolute left-1/2 top-3 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/15 bg-slate-950/85 px-3 py-1.5 shadow-lg backdrop-blur-md md:hidden">
+          <Timer className={`h-4 w-4 ${state.timeLeft < 10 ? 'animate-pulse text-red-500' : 'text-emerald-400'}`} />
+          <span className={`font-mono text-lg font-black leading-none ${state.timeLeft < 10 ? 'text-red-500' : 'text-emerald-400'}`}>{state.timeLeft}s</span>
+        </div>
           {/* Top Bar - Estatísticas da partida */}
           <div className="w-full flex flex-col items-center gap-2">
             <div className="w-full max-w-2xl">
@@ -272,7 +276,7 @@ export default function App() {
                     <Trophy className="h-3.5 w-3.5 text-yellow-500 sm:h-4 sm:w-4" />
                     <span className="font-mono text-base font-black text-yellow-500 sm:text-xl">{state.score}</span>
                   </div>
-                  <div className="flex items-center gap-1">
+                  <div className="hidden items-center gap-1 md:flex">
                     <Timer className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${state.timeLeft < 10 ? 'animate-pulse text-red-500' : 'text-emerald-400'}`} />
                     <span className={`font-mono text-base font-black sm:text-xl ${state.timeLeft < 10 ? 'text-red-500' : 'text-emerald-400'}`}>{state.timeLeft}s</span>
                   </div>
