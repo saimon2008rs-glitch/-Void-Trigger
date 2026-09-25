@@ -46,6 +46,13 @@ export default function App() {
       mega: 0,
       bot: 0,
     },
+    pendingPowerUps: {
+      slowmo: false,
+      double: false,
+      shield: false,
+      mega: false,
+      bot: false,
+    },
   });
 
   const [showLevelUp, setShowLevelUp] = useState(false);
@@ -72,6 +79,17 @@ export default function App() {
     setControls({ left: false, right: false, fire: false });
     setState(prev => ({
       ...prev,
+      activePowerUps: Object.keys(prev.pendingPowerUps).reduce((active, powerUp) => {
+        active[powerUp] = prev.pendingPowerUps[powerUp] ? Date.now() + POWERUP_DURATION : 0;
+        return active;
+      }, {}),
+      pendingPowerUps: {
+        slowmo: false,
+        double: false,
+        shield: false,
+        mega: false,
+        bot: false,
+      },
       score: 0,
       lives: 3,
       timeLeft: GAME_DURATION, // Todas as fases têm a mesma duração definida em constants.js
@@ -116,14 +134,16 @@ export default function App() {
 
   const buyPowerUp = (powerUp) => {
     const cost = POWERUP_COSTS[powerUp];
-    if (state.coins < cost) return;
-    const expiresAt = Date.now() + POWERUP_DURATION;
-    setState(prev => ({
-      ...prev,
-      coins: prev.coins - cost,
-      activePowerUps: { ...prev.activePowerUps, [powerUp]: expiresAt }
-    }));
-    localStorage.setItem('coins', String(state.coins - cost));
+    setState(prev => {
+      if (prev.coins < cost) return prev;
+      const remainingCoins = prev.coins - cost;
+      localStorage.setItem('coins', String(remainingCoins));
+      return {
+        ...prev,
+        coins: remainingCoins,
+        pendingPowerUps: { ...prev.pendingPowerUps, [powerUp]: true },
+      };
+    });
   };
 
   const handleScoreUpdate = useCallback((points) => {

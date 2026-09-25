@@ -1,10 +1,11 @@
 import React, { useEffect, useRef } from 'react';
-import { TARGET_RADIUS, COLORS } from '../constants';
+import { TARGET_RADIUS, COLORS, SPAWN_RATE } from '../constants';
 
 const MAX_TARGETS = 32;
 const MAX_PLAYER_BULLETS = 24;
 const MAX_ENEMY_BULLETS = 72;
 const MAX_PARTICLES = 120;
+const getShipY = () => window.innerHeight - Math.max(110, Math.min(150, window.innerHeight * 0.16));
 
 const GameCanvas = ({ 
   onScoreUpdate, 
@@ -24,7 +25,7 @@ const GameCanvas = ({
   const bulletsRef = useRef([]);
   const enemyBulletsRef = useRef([]);
   const particlesRef = useRef([]);
-  const shipRef = useRef({ x: window.innerWidth / 2, y: window.innerHeight - 120 });
+  const shipRef = useRef({ x: window.innerWidth / 2, y: getShipY() });
   const shipImageRef = useRef(null);
   const phaseBgImageRef = useRef(null);
   const requestRef = useRef(null);
@@ -86,8 +87,6 @@ const GameCanvas = ({
     return layer;
   };
 
-  const getShipY = () => window.innerHeight - Math.max(110, Math.min(150, window.innerHeight * 0.16));
-
   const gameStateRef = useRef({ isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onEnemyDefeated, onDamage });
 
   useEffect(() => {
@@ -101,7 +100,7 @@ const GameCanvas = ({
     const side = Math.floor(Math.random() * 3); // Apenas 3 lados: Cima, Direita, Esquerda
     let x, y, vx, vy;
     const speed = 2 + currentPhase * 1.2;
-    const currentRadius = isMega ? TARGET_RADIUS * 2 : TARGET_RADIUS;
+    const currentRadius = gameStateRef.current.isMega ? TARGET_RADIUS * 2 : TARGET_RADIUS;
 
     if (side === 0) { // Top
       x = Math.random() * width;
@@ -191,7 +190,7 @@ const GameCanvas = ({
 
     // Spawn logic
     // Spawn fica mais rápido a cada fase
-    if (time - lastSpawnRef.current > Math.max(150, 1000 - currentPhase * 150)) {
+    if (time - lastSpawnRef.current > Math.max(150, SPAWN_RATE - currentPhase * 150)) {
       spawnTarget();
       lastSpawnRef.current = time;
     }
@@ -257,11 +256,12 @@ const GameCanvas = ({
     if (gridLayer) ctx.drawImage(gridLayer, 0, 0);
 
     // Update enemy bullets
+    const speedMult = gameState.isSlowMo ? 0.3 : 1;
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#fca5a5';
     enemyBulletsRef.current.forEach(bullet => {
-      bullet.x += bullet.vx * frameScale;
-      bullet.y += bullet.vy * frameScale;
+      bullet.x += bullet.vx * speedMult * frameScale;
+      bullet.y += bullet.vy * speedMult * frameScale;
       ctx.beginPath();
       ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2);
       ctx.fill();
@@ -314,7 +314,6 @@ const GameCanvas = ({
 
     // Update targets
     targetsRef.current.forEach(target => {
-      const speedMult = gameState.isSlowMo ? 0.3 : 1;
       target.x += target.vx * speedMult * frameScale;
       target.y += target.vy * speedMult * frameScale;
 
