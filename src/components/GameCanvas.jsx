@@ -1,6 +1,11 @@
 import React, { useEffect, useRef } from 'react';
 import { TARGET_RADIUS, COLORS } from '../constants';
 
+const MAX_TARGETS = 32;
+const MAX_PLAYER_BULLETS = 24;
+const MAX_ENEMY_BULLETS = 72;
+const MAX_PARTICLES = 120;
+
 const GameCanvas = ({ 
   onScoreUpdate, 
   onEnemyDefeated,
@@ -28,6 +33,7 @@ const GameCanvas = ({
   const lastBotClickRef = useRef(0);
   const lastFrameTimeRef = useRef(0);
   const damageCooldownUntilRef = useRef(0);
+  const contextRef = useRef(null);
   const backgroundLayerRef = useRef(null);
   const gridLayerRef = useRef({ canvas: null, width: 0, height: 0, slowMo: null });
 
@@ -89,6 +95,7 @@ const GameCanvas = ({
   }, [isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onEnemyDefeated, onDamage]);
 
   const spawnTarget = () => {
+    if (targetsRef.current.length >= MAX_TARGETS) return;
     const width = window.innerWidth;
     const height = window.innerHeight;
     const side = Math.floor(Math.random() * 3); // Apenas 3 lados: Cima, Direita, Esquerda
@@ -140,7 +147,7 @@ const GameCanvas = ({
   };
 
   const createExplosion = (x, y, color) => {
-    const particleCount = Math.min(10, 200 - particlesRef.current.length);
+    const particleCount = Math.min(6, MAX_PARTICLES - particlesRef.current.length);
     for (let i = 0; i < particleCount; i++) {
       particlesRef.current.push({
         x,
@@ -164,7 +171,7 @@ const GameCanvas = ({
         vx: Math.cos(angle) * 5,
         vy: Math.sin(angle) * 5,
       });
-      if (enemyBulletsRef.current.length > 120) enemyBulletsRef.current.shift();
+      if (enemyBulletsRef.current.length > MAX_ENEMY_BULLETS) enemyBulletsRef.current.splice(0, 3);
     }
   };
 
@@ -173,7 +180,7 @@ const GameCanvas = ({
     if (!gameState.isActive) return;
 
     const canvas = canvasRef.current;
-    const ctx = canvas?.getContext('2d');
+    const ctx = contextRef.current;
     if (!ctx || !canvas) return;
     const frameScale = lastFrameTimeRef.current
       ? Math.min((time - lastFrameTimeRef.current) / (1000 / 60), 2)
@@ -214,11 +221,13 @@ const GameCanvas = ({
 
     // Firing logic
     if (inputControlsRef.current.fire && time - lastFireRef.current > 200) {
-      bulletsRef.current.push({
-        x: shipRef.current.x,
-        y: shipRef.current.y - 20,
-        vy: -10
-      });
+      if (bulletsRef.current.length < MAX_PLAYER_BULLETS) {
+        bulletsRef.current.push({
+          x: shipRef.current.x,
+          y: shipRef.current.y - 20,
+          vy: -10
+        });
+      }
       lastFireRef.current = time;
     }
 
@@ -248,20 +257,17 @@ const GameCanvas = ({
     if (gridLayer) ctx.drawImage(gridLayer, 0, 0);
 
     // Update enemy bullets
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#fca5a5';
     enemyBulletsRef.current.forEach(bullet => {
       bullet.x += bullet.vx * frameScale;
       bullet.y += bullet.vy * frameScale;
-      ctx.save();
-      ctx.shadowBlur = 10;
-      ctx.shadowColor = '#ef4444';
-      ctx.fillStyle = '#fca5a5';
       ctx.beginPath();
       ctx.arc(bullet.x, bullet.y, 5, 0, Math.PI * 2);
       ctx.fill();
-      ctx.restore();
 
-      const distanceToShip = Math.sqrt((bullet.x - shipRef.current.x) ** 2 + (bullet.y - shipRef.current.y) ** 2);
-      if (distanceToShip < 50 + 6) {
+      const distanceToShipSquared = (bullet.x - shipRef.current.x) ** 2 + (bullet.y - shipRef.current.y) ** 2;
+      if (distanceToShipSquared < (50 + 6) ** 2) {
         if (!gameState.isShield && time >= damageCooldownUntilRef.current) {
           gameState.onDamage();
           damageCooldownUntilRef.current = time + 1000;
@@ -284,8 +290,9 @@ const GameCanvas = ({
       let bulletHit = false;
       targetsRef.current = targetsRef.current.filter(target => {
         if (bulletHit) return true;
-        const dist = Math.sqrt((bullet.x - target.x) ** 2 + (bullet.y - target.y) ** 2);
-        if (dist < target.radius + 10) {
+        const hitRadius = target.radius + 10;
+        const distSquared = (bullet.x - target.x) ** 2 + (bullet.y - target.y) ** 2;
+        if (distSquared < hitRadius ** 2) {
           target.health -= 1;
           createExplosion(target.x, target.y, target.color);
           bullet.toRemove = true;
@@ -313,8 +320,9 @@ const GameCanvas = ({
 
       // Check collision with ship
       const shipCollisionRadius = 50;
-      const distToShip = Math.sqrt((target.x - shipRef.current.x) ** 2 + (target.y - shipRef.current.y) ** 2);
-      if (distToShip < target.radius + shipCollisionRadius) {
+      const collisionRadius = target.radius + shipCollisionRadius;
+      const distToShipSquared = (target.x - shipRef.current.x) ** 2 + (target.y - shipRef.current.y) ** 2;
+      if (distToShipSquared < collisionRadius ** 2) {
         const canTakeDamage = time >= damageCooldownUntilRef.current;
         if (!gameState.isShield && canTakeDamage) {
           gameState.onDamage();
@@ -430,6 +438,8 @@ const GameCanvas = ({
       if (!canvas) return;
       canvas.width = window.innerWidth;
       canvas.height = window.innerHeight;
+      contextRef.current = canvas.getContext('2d', { alpha: false });
+      if (contextRef.current) contextRef.current.imageSmoothingEnabled = false;
       backgroundLayerRef.current = null;
       gridLayerRef.current = { canvas: null, width: 0, height: 0, slowMo: null };
       shipRef.current.x = Math.min(Math.max(shipRef.current.x, 30), window.innerWidth - 30);
