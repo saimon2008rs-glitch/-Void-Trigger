@@ -215,8 +215,13 @@ const GameCanvas = ({
     }
 
     // Ship movement
-    if (inputControlsRef.current.left) shipRef.current.x = Math.max(30, shipRef.current.x - 12 * frameScale);
-    if (inputControlsRef.current.right) shipRef.current.x = Math.min(width - 30, shipRef.current.x + 12 * frameScale);
+    const horizontalDirection = Number(inputControlsRef.current.right) - Number(inputControlsRef.current.left);
+    if (horizontalDirection !== 0) {
+      shipRef.current.x = Math.min(
+        width - 30,
+        Math.max(30, shipRef.current.x + horizontalDirection * 12 * frameScale),
+      );
+    }
 
     // Firing logic
     if (inputControlsRef.current.fire && time - lastFireRef.current > 200) {

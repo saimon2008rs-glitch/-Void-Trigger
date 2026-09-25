@@ -114,7 +114,10 @@ export default function App() {
   };
 
   const setControl = (control, value) => {
-    controlsRef.current = { ...controlsRef.current, [control]: value };
+    const nextControls = { ...controlsRef.current, [control]: value };
+    if (value && control === 'left') nextControls.right = false;
+    if (value && control === 'right') nextControls.left = false;
+    controlsRef.current = nextControls;
     setControls(controlsRef.current);
   };
 
@@ -248,6 +251,7 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!state.isActive || state.isPaused) return;
+      if (['ArrowLeft', 'ArrowRight', 'ArrowUp', ' '].includes(e.key)) e.preventDefault();
       if (e.key === 'ArrowLeft') setControl('left', true);
       if (e.key === 'ArrowRight') setControl('right', true);
       if (e.key === ' ' || e.key === 'ArrowUp') setControl('fire', true);
