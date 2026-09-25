@@ -11,7 +11,7 @@ const GameCanvas = ({
   isShield,
   isMega,
   isBot,
-  controls,
+  inputControlsRef,
   currentPhase
 }) => {
   const canvasRef = useRef(null);
@@ -28,7 +28,6 @@ const GameCanvas = ({
   const lastBotClickRef = useRef(0);
   const lastFrameTimeRef = useRef(0);
   const damageCooldownUntilRef = useRef(0);
-  const controlsRef = useRef(controls);
   const backgroundLayerRef = useRef(null);
   const gridLayerRef = useRef({ canvas: null, width: 0, height: 0, slowMo: null });
 
@@ -84,10 +83,6 @@ const GameCanvas = ({
   const getShipY = () => window.innerHeight - Math.max(110, Math.min(150, window.innerHeight * 0.16));
 
   const gameStateRef = useRef({ isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onEnemyDefeated, onDamage });
-
-  useEffect(() => {
-    controlsRef.current = controls;
-  }, [controls]);
 
   useEffect(() => {
     gameStateRef.current = { isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onEnemyDefeated, onDamage };
@@ -214,11 +209,11 @@ const GameCanvas = ({
     }
 
     // Ship movement
-    if (controlsRef.current.left) shipRef.current.x = Math.max(30, shipRef.current.x - 12 * frameScale);
-    if (controlsRef.current.right) shipRef.current.x = Math.min(width - 30, shipRef.current.x + 12 * frameScale);
+    if (inputControlsRef.current.left) shipRef.current.x = Math.max(30, shipRef.current.x - 12 * frameScale);
+    if (inputControlsRef.current.right) shipRef.current.x = Math.min(width - 30, shipRef.current.x + 12 * frameScale);
 
     // Firing logic
-    if (controlsRef.current.fire && time - lastFireRef.current > 200) {
+    if (inputControlsRef.current.fire && time - lastFireRef.current > 200) {
       bulletsRef.current.push({
         x: shipRef.current.x,
         y: shipRef.current.y - 20,

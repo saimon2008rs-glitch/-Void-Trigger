@@ -50,7 +50,8 @@ export default function App() {
 
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [isMenuPanelOpen, setIsMenuPanelOpen] = useState(false);
-  const [controls, setControls] = useState({ left: false, right: false, fire: false });
+  const [, setControls] = useState({ left: false, right: false, fire: false });
+  const controlsRef = useRef({ left: false, right: false, fire: false });
   const levelUpTimeoutRef = useRef(null);
   const previousLevelRef = useRef(1);
 
@@ -67,6 +68,7 @@ export default function App() {
   
   const startGame = (phaseNum) => {
     setIsMenuPanelOpen(false);
+    controlsRef.current = { left: false, right: false, fire: false };
     setControls({ left: false, right: false, fire: false });
     setState(prev => ({
       ...prev,
@@ -87,13 +89,15 @@ export default function App() {
   const restartGame = () => startGame(state.currentPhase);
 
   const returnToMenu = () => {
+    controlsRef.current = { left: false, right: false, fire: false };
     setControls({ left: false, right: false, fire: false });
     setIsMenuPanelOpen(false);
     setState(prev => ({ ...prev, isActive: false, isPaused: false, isGameOver: false, isPhaseComplete: false, isMenuOpen: true }));
   };
 
   const setControl = (control, value) => {
-    setControls(prev => ({ ...prev, [control]: value }));
+    controlsRef.current = { ...controlsRef.current, [control]: value };
+    setControls(controlsRef.current);
   };
 
   const getPointerHandlers = (control) => ({
@@ -224,15 +228,15 @@ export default function App() {
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (!state.isActive || state.isPaused) return;
-      if (e.key === 'ArrowLeft') setControls(prev => ({ ...prev, left: true }));
-      if (e.key === 'ArrowRight') setControls(prev => ({ ...prev, right: true }));
-      if (e.key === ' ' || e.key === 'ArrowUp') setControls(prev => ({ ...prev, fire: true }));
+      if (e.key === 'ArrowLeft') setControl('left', true);
+      if (e.key === 'ArrowRight') setControl('right', true);
+      if (e.key === ' ' || e.key === 'ArrowUp') setControl('fire', true);
     };
 
     const handleKeyUp = (e) => {
-      if (e.key === 'ArrowLeft') setControls(prev => ({ ...prev, left: false }));
-      if (e.key === 'ArrowRight') setControls(prev => ({ ...prev, right: false }));
-      if (e.key === ' ' || e.key === 'ArrowUp') setControls(prev => ({ ...prev, fire: false }));
+      if (e.key === 'ArrowLeft') setControl('left', false);
+      if (e.key === 'ArrowRight') setControl('right', false);
+      if (e.key === ' ' || e.key === 'ArrowUp') setControl('fire', false);
     };
 
     window.addEventListener('keydown', handleKeyDown);
@@ -615,7 +619,7 @@ export default function App() {
             isShield={isShield}
             isMega={isMega}
             isBot={isBot}
-            controls={controls}
+            inputControlsRef={controlsRef}
             currentPhase={state.currentPhase}
           />
         )}
