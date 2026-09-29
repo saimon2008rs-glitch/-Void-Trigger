@@ -331,13 +331,6 @@ export default function App() {
           <div className="w-full flex flex-col items-center gap-2">
             <div className="w-full max-w-2xl">
               <div className="mb-1 flex items-end justify-between gap-2 px-1">
-                <div className="flex items-center gap-2">
-                  <Star className="w-4 h-4 text-purple-400 fill-purple-400" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 sm:text-xs">{isInfinite ? 'Modo infinito' : `Fase ${state.currentPhase}`}</span>
-                  <span className="rounded-full border border-purple-400/30 bg-purple-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-purple-200 sm:text-[10px]">
-                    {isInfinite ? `${state.phaseKills} eliminações` : `${state.phaseKills}/${state.currentPhase * 10} eliminações`}
-                  </span>
-                </div>
                 <div className="flex items-center gap-2 sm:gap-4">
                   <div className="flex items-center gap-1">
                     <Trophy className="h-3.5 w-3.5 text-yellow-500 sm:h-4 sm:w-4" />
@@ -406,6 +399,17 @@ export default function App() {
           <Heart className="h-4 w-4 fill-red-500 text-red-500" />
           <span className="text-[10px] font-black uppercase tracking-widest text-red-100 sm:text-xs">Vidas</span>
           <span className="font-mono text-base font-black sm:text-lg">{state.lives}/3</span>
+        </div>
+      )}
+
+      {state.isActive && (
+        <div className="pointer-events-none fixed right-3 top-16 z-[200] flex flex-col items-end gap-0.5 rounded-2xl border-2 border-purple-400/60 bg-slate-950 px-3 py-2 text-right shadow-[0_0_24px_rgba(168,85,247,0.3)] backdrop-blur-md md:left-1/2 md:right-auto md:top-4 md:-translate-x-1/2 md:items-center md:text-center">
+          <span className="text-[10px] font-black uppercase tracking-[0.18em] text-purple-200 sm:text-xs">
+            {isInfinite ? 'Modo infinito' : `Modo carreira · Fase ${state.currentPhase}`}
+          </span>
+          <span className="text-[10px] font-bold uppercase tracking-widest text-slate-400 sm:text-xs">
+            Eliminações <span className="font-mono text-sm font-black text-white sm:text-base">{isInfinite ? state.phaseKills : `${state.phaseKills}/${state.currentPhase * 10}`}</span>
+          </span>
         </div>
       )}
 
