@@ -321,11 +321,6 @@ export default function App() {
             {state.isPaused ? <Play className="h-6 w-6" /> : <Pause className="h-6 w-6" />}
           </button>
         </div>
-        <div className="pointer-events-none fixed left-3 top-16 z-30 flex items-center gap-2 rounded-full border border-red-400/40 bg-slate-950 px-3 py-1.5 shadow-[0_0_18px_rgba(239,68,68,0.25)] backdrop-blur-md md:left-24 md:top-8">
-          <Heart className="h-4 w-4 fill-red-500 text-red-500" />
-          <span className="text-[10px] font-black uppercase tracking-widest text-red-200 sm:text-xs">Vidas</span>
-          <span className="font-mono text-base font-black text-white sm:text-lg">{state.lives}/3</span>
-        </div>
         {!isInfinite && (
           <div className="pointer-events-none absolute left-1/2 top-3 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/15 bg-slate-950/85 px-3 py-1.5 shadow-lg backdrop-blur-md md:hidden">
             <Timer className={`h-4 w-4 ${state.timeLeft < 10 ? 'animate-pulse text-red-500' : 'text-emerald-400'}`} />
@@ -403,6 +398,14 @@ export default function App() {
               <span className="text-xs md:text-sm font-black text-slate-100 uppercase tracking-widest">Minor (+5)</span>
             </div>
           </div>
+        </div>
+      )}
+
+      {state.isActive && (
+        <div className="pointer-events-none fixed left-3 top-16 z-[200] flex items-center gap-2 rounded-full border-2 border-red-400/70 bg-slate-950 px-3 py-1.5 text-white shadow-[0_0_24px_rgba(239,68,68,0.4)] md:left-24 md:top-8">
+          <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-red-100 sm:text-xs">Vidas</span>
+          <span className="font-mono text-base font-black sm:text-lg">{state.lives}/3</span>
         </div>
       )}
 
