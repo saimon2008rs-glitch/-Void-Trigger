@@ -32,6 +32,8 @@ export default function App() {
     isPaused: false,
     isGameOver: false,
     isMenuOpen: true,
+    menuSection: 'main',
+    gameMode: 'career',
     currentPhase: 1,
     phaseKills: 0,
     isPhaseComplete: false,
@@ -73,7 +75,7 @@ export default function App() {
   };
   const POWERUP_DURATION = 15000;
   
-  const startGame = (phaseNum) => {
+  const startGame = (phaseNum, mode = 'career') => {
     setIsMenuPanelOpen(false);
     controlsRef.current = { left: false, right: false, fire: false };
     setControls({ left: false, right: false, fire: false });
@@ -99,18 +101,27 @@ export default function App() {
       phaseKills: 0,
       isPhaseComplete: false,
       isMenuOpen: false,
+      menuSection: 'main',
+      gameMode: mode,
       currentPhase: phaseNum,
       level: 1
     }));
   };
 
-  const restartGame = () => startGame(state.currentPhase);
+  const restartGame = () => startGame(state.currentPhase, state.gameMode);
+
+  const startInfiniteGame = () => startGame(1, 'infinite');
+
+  const openCareer = () => {
+    setIsMenuPanelOpen(false);
+    setState(prev => ({ ...prev, menuSection: 'career', isMenuOpen: true }));
+  };
 
   const returnToMenu = () => {
     controlsRef.current = { left: false, right: false, fire: false };
     setControls({ left: false, right: false, fire: false });
     setIsMenuPanelOpen(false);
-    setState(prev => ({ ...prev, isActive: false, isPaused: false, isGameOver: false, isPhaseComplete: false, isMenuOpen: true }));
+    setState(prev => ({ ...prev, isActive: false, isPaused: false, isGameOver: false, isPhaseComplete: false, menuSection: 'main', gameMode: 'career', isMenuOpen: true }));
   };
 
   const setControl = (control, value) => {
@@ -185,6 +196,9 @@ export default function App() {
   const handleEnemyDefeated = useCallback(() => {
     setState(prev => {
       if (prev.isPhaseComplete) return prev;
+      if (prev.gameMode === 'infinite') {
+        return { ...prev, phaseKills: prev.phaseKills + 1 };
+      }
       const requiredKills = prev.currentPhase * 10;
       const phaseKills = Math.min(requiredKills, prev.phaseKills + 1);
       if (phaseKills < requiredKills) {
@@ -243,10 +257,10 @@ export default function App() {
   }, []);
 
   useEffect(() => {
-    if (state.isActive && !state.isPaused && (state.timeLeft <= 0 || state.lives <= 0)) {
+    if (state.isActive && !state.isPaused && ((state.gameMode === 'career' && state.timeLeft <= 0) || state.lives <= 0)) {
       handleGameOver();
     }
-  }, [state.isActive, state.timeLeft, state.lives, handleGameOver]);
+  }, [state.isActive, state.timeLeft, state.lives, state.gameMode, handleGameOver]);
 
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -274,7 +288,7 @@ export default function App() {
 
   useEffect(() => {
     let timer;
-    if (state.isActive && !state.isPaused && state.timeLeft > 0) {
+    if (state.isActive && !state.isPaused && state.gameMode === 'career' && state.timeLeft > 0) {
       timer = window.setInterval(() => {
         setState(prev => {
           return { ...prev, timeLeft: Math.max(0, prev.timeLeft - 1) };
@@ -282,7 +296,7 @@ export default function App() {
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [state.isActive, state.isPaused]);
+  }, [state.isActive, state.isPaused, state.gameMode]);
 
   const now = Date.now();
   const isSlowMo = state.activePowerUps.slowmo > now;
@@ -290,6 +304,7 @@ export default function App() {
   const isShield = state.activePowerUps.shield > now;
   const isMega = state.activePowerUps.mega > now;
   const isBot = state.activePowerUps.bot > now;
+  const isInfinite = state.gameMode === 'infinite';
 
   return (
     <div className="fixed inset-0 overflow-hidden overscroll-none bg-slate-950 font-sans text-slate-100 select-none">
@@ -306,19 +321,21 @@ export default function App() {
             {state.isPaused ? <Play className="h-6 w-6" /> : <Pause className="h-6 w-6" />}
           </button>
         </div>
-        <div className="pointer-events-none absolute left-1/2 top-3 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/15 bg-slate-950/85 px-3 py-1.5 shadow-lg backdrop-blur-md md:hidden">
-          <Timer className={`h-4 w-4 ${state.timeLeft < 10 ? 'animate-pulse text-red-500' : 'text-emerald-400'}`} />
-          <span className={`font-mono text-lg font-black leading-none ${state.timeLeft < 10 ? 'text-red-500' : 'text-emerald-400'}`}>{state.timeLeft}s</span>
-        </div>
+        {!isInfinite && (
+          <div className="pointer-events-none absolute left-1/2 top-3 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/15 bg-slate-950/85 px-3 py-1.5 shadow-lg backdrop-blur-md md:hidden">
+            <Timer className={`h-4 w-4 ${state.timeLeft < 10 ? 'animate-pulse text-red-500' : 'text-emerald-400'}`} />
+            <span className={`font-mono text-lg font-black leading-none ${state.timeLeft < 10 ? 'text-red-500' : 'text-emerald-400'}`}>{state.timeLeft}s</span>
+          </div>
+        )}
           {/* Top Bar - Estatísticas da partida */}
           <div className="w-full flex flex-col items-center gap-2">
             <div className="w-full max-w-2xl">
               <div className="mb-1 flex items-end justify-between gap-2 px-1">
                 <div className="flex items-center gap-2">
                   <Star className="w-4 h-4 text-purple-400 fill-purple-400" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 sm:text-xs">Phase {state.currentPhase}</span>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-purple-400 sm:text-xs">{isInfinite ? 'Modo infinito' : `Fase ${state.currentPhase}`}</span>
                   <span className="rounded-full border border-purple-400/30 bg-purple-500/10 px-2 py-0.5 text-[9px] font-black uppercase tracking-wide text-purple-200 sm:text-[10px]">
-                    {state.phaseKills}/{state.currentPhase * 10} eliminações
+                    {isInfinite ? `${state.phaseKills} eliminações` : `${state.phaseKills}/${state.currentPhase * 10} eliminações`}
                   </span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-4">
@@ -334,7 +351,7 @@ export default function App() {
                     <Trophy className="h-3.5 w-3.5 text-yellow-500 sm:h-4 sm:w-4" />
                     <span className="font-mono text-base font-black text-yellow-500 sm:text-xl">{state.score}</span>
                   </div>
-                  <div className="hidden items-center gap-1 md:flex">
+                  <div className={`${isInfinite ? 'hidden' : 'hidden md:flex'} items-center gap-1`}>
                     <Timer className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${state.timeLeft < 10 ? 'animate-pulse text-red-500' : 'text-emerald-400'}`} />
                     <span className={`font-mono text-base font-black sm:text-xl ${state.timeLeft < 10 ? 'text-red-500' : 'text-emerald-400'}`}>{state.timeLeft}s</span>
                   </div>
@@ -477,20 +494,6 @@ export default function App() {
         )}
       </AnimatePresence>
 
-      {/* Botão da loja na página inicial */}
-      {state.isMenuOpen && (
-        <motion.button
-          type="button"
-          aria-label="Abrir loja"
-          aria-expanded={isMenuPanelOpen}
-          onClick={() => setIsMenuPanelOpen(prev => !prev)}
-          whileTap={{ scale: 0.92 }}
-          className="fixed top-4 left-4 z-[90] flex h-12 w-12 items-center justify-center rounded-xl border border-white/20 bg-slate-950/80 text-white shadow-xl backdrop-blur-md transition-colors hover:bg-purple-600/80"
-        >
-          <ShoppingCart className="h-7 w-7" />
-        </motion.button>
-      )}
-
       <AnimatePresence>
         {state.isMenuOpen && isMenuPanelOpen && (
           <>
@@ -589,32 +592,45 @@ export default function App() {
               <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500 sm:text-xs sm:tracking-[0.3em]">Deep Space Target Protocol</p>
             </motion.div>
 
-            <div className="grid w-full max-w-4xl grid-cols-2 gap-3 sm:gap-4 md:grid-cols-5">
-              {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((phase) => {
-                const isUnlocked = phase <= state.unlockedPhases;
-                return (
-                  <motion.button
-                    key={phase}
-                    whileHover={isUnlocked ? { scale: 1.05, backgroundColor: 'rgba(168, 85, 247, 0.2)' } : {}}
-                    whileTap={isUnlocked ? { scale: 0.95 } : {}}
-                    onClick={() => isUnlocked && startGame(phase)}
-                    className={`relative aspect-square rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${
-                      isUnlocked 
-                        ? 'border-purple-500/50 bg-slate-900/50 text-white shadow-[0_0_20px_rgba(168,85,247,0.1)]' 
-                        : 'border-slate-800 bg-slate-900/20 text-slate-600 cursor-not-allowed'
-                    }`}
-                  >
-                    <span className="text-3xl font-black">{phase}</span>
-                    <span className="text-[10px] uppercase font-bold tracking-widest">Phase</span>
-                    {!isUnlocked && <Lock className="w-4 h-4 absolute top-3 right-3 opacity-50" />}
-                    {isUnlocked && phase < state.unlockedPhases && <Unlock className="w-4 h-4 absolute top-3 right-3 text-emerald-500 opacity-50" />}
-                  </motion.button>
-                );
-              })}
-            </div>
+            {state.menuSection === 'main' ? (
+              <div className="flex w-full max-w-sm flex-col gap-3">
+                <motion.button type="button" whileTap={{ scale: 0.97 }} onClick={() => setIsMenuPanelOpen(true)} className="flex min-h-16 items-center justify-center gap-3 rounded-2xl border-2 border-cyan-400/50 bg-slate-900/75 px-6 py-4 text-lg font-black uppercase tracking-widest text-cyan-200 shadow-[0_0_25px_rgba(34,211,238,0.12)] transition-colors hover:bg-cyan-500/15">
+                  <ShoppingCart className="h-6 w-6" /> Loja
+                </motion.button>
+                <motion.button type="button" whileTap={{ scale: 0.97 }} onClick={openCareer} className="flex min-h-16 items-center justify-center gap-3 rounded-2xl border-2 border-purple-400/60 bg-purple-600/20 px-6 py-4 text-lg font-black uppercase tracking-widest text-white shadow-[0_0_25px_rgba(168,85,247,0.18)] transition-colors hover:bg-purple-600/35">
+                  <Star className="h-6 w-6 fill-purple-300 text-purple-300" /> Modo carreira
+                </motion.button>
+                <motion.button type="button" whileTap={{ scale: 0.97 }} onClick={startInfiniteGame} className="flex min-h-16 items-center justify-center gap-3 rounded-2xl border-2 border-emerald-400/50 bg-emerald-500/10 px-6 py-4 text-lg font-black uppercase tracking-widest text-emerald-200 transition-colors hover:bg-emerald-500/20">
+                  <Zap className="h-6 w-6" /> Modo infinito
+                </motion.button>
+              </div>
+            ) : (
+              <>
+                <div className="grid w-full max-w-4xl grid-cols-2 gap-3 sm:gap-4 md:grid-cols-5">
+                  {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((phase) => {
+                    const isUnlocked = phase <= state.unlockedPhases;
+                    return (
+                      <motion.button
+                        key={phase}
+                        whileHover={isUnlocked ? { scale: 1.05, backgroundColor: 'rgba(168, 85, 247, 0.2)' } : {}}
+                        whileTap={isUnlocked ? { scale: 0.95 } : {}}
+                        onClick={() => isUnlocked && startGame(phase, 'career')}
+                        className={`relative aspect-square rounded-2xl border-2 flex flex-col items-center justify-center gap-2 transition-all ${isUnlocked ? 'border-purple-500/50 bg-slate-900/50 text-white shadow-[0_0_20px_rgba(168,85,247,0.1)]' : 'border-slate-800 bg-slate-900/20 text-slate-600 cursor-not-allowed'}`}
+                      >
+                        <span className="text-3xl font-black">{phase}</span>
+                        <span className="text-[10px] uppercase font-bold tracking-widest">Fase</span>
+                        {!isUnlocked && <Lock className="absolute right-3 top-3 h-4 w-4 opacity-50" />}
+                        {isUnlocked && phase < state.unlockedPhases && <Unlock className="absolute right-3 top-3 h-4 w-4 text-emerald-500 opacity-50" />}
+                      </motion.button>
+                    );
+                  })}
+                </div>
+                <button type="button" onClick={() => setState(prev => ({ ...prev, menuSection: 'main' }))} className="mx-auto mt-5 rounded-xl border border-white/10 bg-white/5 px-5 py-2 text-xs font-black uppercase tracking-widest text-slate-300 transition-colors hover:bg-white/10">Voltar ao menu</button>
+              </>
+            )}
 
-            <div className="mt-12 text-center max-w-md">
-              <p className="mb-4 text-xs text-slate-400 sm:text-sm">Elimine <span className="font-bold text-white">{state.currentPhase * 10} inimigos</span> na fase atual para avançar. A velocidade dos alvos aumenta a cada fase.</p>
+            <div className="mt-8 max-w-md text-center sm:mt-12">
+              <p className="mb-4 text-xs text-slate-400 sm:text-sm">{state.menuSection === 'main' ? 'Escolha como quer jogar. No modo infinito, sobreviva e marque o maior número de pontos possível.' : <>Elimine <span className="font-bold text-white">{state.currentPhase * 10} inimigos</span> na fase atual para avançar. A velocidade dos alvos aumenta a cada fase.</>}</p>
               <div className="flex justify-center gap-6 sm:gap-8">
                 <div className="flex flex-col">
                   <span className="text-slate-600 text-[10px] uppercase font-bold">Recorde</span>
