@@ -321,7 +321,7 @@ export default function App() {
             {state.isPaused ? <Play className="h-6 w-6" /> : <Pause className="h-6 w-6" />}
           </button>
         </div>
-        <div className="pointer-events-none absolute left-3 top-16 flex items-center gap-2 rounded-full border border-red-400/25 bg-slate-950/85 px-3 py-1.5 shadow-lg backdrop-blur-md md:left-24 md:top-8">
+        <div className="pointer-events-none fixed left-3 top-16 z-30 flex items-center gap-2 rounded-full border border-red-400/40 bg-slate-950 px-3 py-1.5 shadow-[0_0_18px_rgba(239,68,68,0.25)] backdrop-blur-md md:left-24 md:top-8">
           <Heart className="h-4 w-4 fill-red-500 text-red-500" />
           <span className="text-[10px] font-black uppercase tracking-widest text-red-200 sm:text-xs">Vidas</span>
           <span className="font-mono text-base font-black text-white sm:text-lg">{state.lives}/3</span>
