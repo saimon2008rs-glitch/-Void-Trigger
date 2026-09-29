@@ -665,6 +665,7 @@ export default function App() {
             isBot={isBot}
             inputControlsRef={controlsRef}
             currentPhase={state.currentPhase}
+            gameMode={state.gameMode}
           />
         )}
 

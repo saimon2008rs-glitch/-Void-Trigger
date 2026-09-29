@@ -18,7 +18,8 @@ const GameCanvas = ({
   isMega,
   isBot,
   inputControlsRef,
-  currentPhase
+  currentPhase,
+  gameMode
 }) => {
   const canvasRef = useRef(null);
   const targetsRef = useRef([]);
@@ -419,22 +420,23 @@ const GameCanvas = ({
       shipImg.src = `/-Void-Trigger/ship-transparent.webp?v=${version}`;
     };
 
-    // Carregar Fundo
-    if (currentPhase === 1) {
+    // Carregar Fundo: o modo infinito usa exclusivamente o background do buraco negro.
+    if (gameMode === 'infinite' || currentPhase === 1) {
       const bgImg = new Image();
-      bgImg.src = `level1-bg.png?v=${version}`;
+      const backgroundFile = gameMode === 'infinite' ? 'infinite-bg.jpg' : 'level1-bg.png';
+      bgImg.src = `${backgroundFile}?v=${version}`;
       bgImg.onload = () => {
         phaseBgImageRef.current = bgImg;
         backgroundLayerRef.current = null;
       };
       bgImg.onerror = () => {
-        bgImg.src = `/-Void-Trigger/level1-bg.png?v=${version}`;
+        bgImg.src = `/-Void-Trigger/${backgroundFile}?v=${version}`;
       };
     } else {
       phaseBgImageRef.current = null;
       backgroundLayerRef.current = null;
     }
-  }, [currentPhase]);
+  }, [currentPhase, gameMode]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
