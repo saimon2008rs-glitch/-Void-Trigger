@@ -321,6 +321,11 @@ export default function App() {
             {state.isPaused ? <Play className="h-6 w-6" /> : <Pause className="h-6 w-6" />}
           </button>
         </div>
+        <div className="pointer-events-none absolute left-3 top-16 flex items-center gap-2 rounded-full border border-red-400/25 bg-slate-950/85 px-3 py-1.5 shadow-lg backdrop-blur-md md:left-24 md:top-8">
+          <Heart className="h-4 w-4 fill-red-500 text-red-500" />
+          <span className="text-[10px] font-black uppercase tracking-widest text-red-200 sm:text-xs">Vidas</span>
+          <span className="font-mono text-base font-black text-white sm:text-lg">{state.lives}/3</span>
+        </div>
         {!isInfinite && (
           <div className="pointer-events-none absolute left-1/2 top-3 flex -translate-x-1/2 items-center gap-1 rounded-full border border-white/15 bg-slate-950/85 px-3 py-1.5 shadow-lg backdrop-blur-md md:hidden">
             <Timer className={`h-4 w-4 ${state.timeLeft < 10 ? 'animate-pulse text-red-500' : 'text-emerald-400'}`} />
@@ -339,14 +344,6 @@ export default function App() {
                   </span>
                 </div>
                 <div className="flex items-center gap-2 sm:gap-4">
-                  <div className="mr-1 flex items-center gap-1 sm:mr-4 sm:gap-2">
-                    {[...Array(3)].map((_, i) => (
-                      <Heart 
-                        key={i} 
-                        className={`h-4 w-4 sm:h-6 sm:w-6 ${i < state.lives ? 'fill-red-500 text-red-500' : 'text-slate-700'}`}
-                      />
-                    ))}
-                  </div>
                   <div className="flex items-center gap-1">
                     <Trophy className="h-3.5 w-3.5 text-yellow-500 sm:h-4 sm:w-4" />
                     <span className="font-mono text-base font-black text-yellow-500 sm:text-xl">{state.score}</span>
