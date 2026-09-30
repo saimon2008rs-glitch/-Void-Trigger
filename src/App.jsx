@@ -666,6 +666,7 @@ export default function App() {
             inputControlsRef={controlsRef}
             currentPhase={state.currentPhase}
             gameMode={state.gameMode}
+            phaseKills={state.phaseKills}
           />
         )}
 
@@ -725,7 +726,7 @@ export default function App() {
                 
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4">
                   <button 
-                    onClick={() => startGame(state.currentPhase)}
+                    onClick={restartGame}
                     className="px-6 py-4 bg-white text-slate-950 font-black rounded-xl flex items-center justify-center gap-2 hover:bg-slate-200 transition-all active:scale-95"
                   >
                     <RotateCcw className="w-5 h-5" /> RETRY

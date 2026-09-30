@@ -19,7 +19,8 @@ const GameCanvas = ({
   isBot,
   inputControlsRef,
   currentPhase,
-  gameMode
+  gameMode,
+  phaseKills
 }) => {
   const canvasRef = useRef(null);
   const targetsRef = useRef([]);
@@ -88,11 +89,11 @@ const GameCanvas = ({
     return layer;
   };
 
-  const gameStateRef = useRef({ isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onEnemyDefeated, onDamage });
+  const gameStateRef = useRef({ isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, gameMode, phaseKills, onScoreUpdate, onEnemyDefeated, onDamage });
 
   useEffect(() => {
-    gameStateRef.current = { isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onEnemyDefeated, onDamage };
-  }, [isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, onScoreUpdate, onEnemyDefeated, onDamage]);
+    gameStateRef.current = { isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, gameMode, phaseKills, onScoreUpdate, onEnemyDefeated, onDamage };
+  }, [isActive, isSlowMo, isDoublePoints, isShield, isMega, isBot, currentPhase, gameMode, phaseKills, onScoreUpdate, onEnemyDefeated, onDamage]);
 
   const spawnTarget = () => {
     if (targetsRef.current.length >= MAX_TARGETS) return;
@@ -100,7 +101,10 @@ const GameCanvas = ({
     const height = window.innerHeight;
     const side = Math.floor(Math.random() * 3); // Apenas 3 lados: Cima, Direita, Esquerda
     let x, y, vx, vy;
-    const speed = 2 + currentPhase * 1.2;
+    const effectiveDifficulty = gameStateRef.current.gameMode === 'infinite'
+      ? 1 + Math.floor(gameStateRef.current.phaseKills / 10)
+      : gameStateRef.current.currentPhase;
+    const speed = 2 + effectiveDifficulty * 1.2;
     const currentRadius = gameStateRef.current.isMega ? TARGET_RADIUS * 2 : TARGET_RADIUS;
 
     if (side === 0) { // Top
@@ -190,8 +194,11 @@ const GameCanvas = ({
     const height = window.innerHeight;
 
     // Spawn logic
-    // Spawn fica mais rápido a cada fase
-    if (time - lastSpawnRef.current > Math.max(150, SPAWN_RATE - currentPhase * 150)) {
+    // Na carreira a dificuldade acompanha a fase; no infinito, sobe a cada 10 eliminações.
+    const effectiveDifficulty = gameState.gameMode === 'infinite'
+      ? 1 + Math.floor(gameState.phaseKills / 10)
+      : gameState.currentPhase;
+    if (time - lastSpawnRef.current > Math.max(150, SPAWN_RATE - effectiveDifficulty * 150)) {
       spawnTarget();
       lastSpawnRef.current = time;
     }
