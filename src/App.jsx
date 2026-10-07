@@ -511,17 +511,17 @@ export default function App() {
               className="fixed inset-0 z-[70] cursor-default bg-black/60"
             />
             <motion.aside
-              initial={{ x: '-100%' }}
-              animate={{ x: 0 }}
-              exit={{ x: '-100%' }}
-              transition={{ type: 'spring', stiffness: 280, damping: 28 }}
+              initial={{ opacity: 0, y: 24 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 24 }}
+              transition={{ type: 'spring', stiffness: 240, damping: 26 }}
               aria-label="Menu principal"
-              className="fixed inset-y-0 left-0 z-[80] w-[min(88vw,360px)] overflow-y-auto border-r border-white/10 bg-slate-950/95 p-6 pt-20 text-left shadow-2xl backdrop-blur-xl"
+              className="fixed inset-0 z-[80] overflow-y-auto bg-slate-950/98 p-4 pt-[max(1rem,env(safe-area-inset-top))] text-left shadow-2xl backdrop-blur-xl sm:p-8 sm:pt-10"
             >
-              <div className="mb-8 flex items-center justify-between">
+              <div className="mx-auto mb-8 flex w-full max-w-6xl items-center justify-between border-b border-white/10 pb-5 sm:mb-10 sm:pb-6">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.28em] text-cyan-400">Void Trigger</p>
-                  <h2 className="mt-1 text-2xl font-black uppercase italic tracking-tight text-white">Menu</h2>
+                  <h2 className="mt-1 text-3xl font-black uppercase italic tracking-tight text-white sm:text-4xl">Loja</h2>
                 </div>
                 <button
                   type="button"
@@ -533,7 +533,7 @@ export default function App() {
                 </button>
               </div>
 
-              <div className="mb-8 grid grid-cols-2 gap-3">
+              <div className="mx-auto mb-8 grid w-full max-w-6xl grid-cols-2 gap-3 sm:mb-10 sm:gap-4">
                 <div className="rounded-xl border border-white/10 bg-white/5 p-3">
                   <span className="block text-[10px] font-bold uppercase tracking-widest text-slate-500">Recorde</span>
                   <span className="mt-1 block text-2xl font-black text-purple-400">{state.highScore}</span>
@@ -544,22 +544,22 @@ export default function App() {
                 </div>
               </div>
 
-              <div>
-                <div className="mb-3 flex items-end justify-between">
+              <div className="mx-auto w-full max-w-6xl">
+                <div className="mb-4 flex flex-col gap-2 sm:mb-6 sm:flex-row sm:items-end sm:justify-between">
                   <div>
-                    <h3 className="text-sm font-black uppercase tracking-widest text-white">Loja</h3>
-                    <p className="mt-1 text-[10px] uppercase tracking-wider text-slate-500">Power-ups por 15 segundos</p>
+                    <h3 className="text-xl font-black uppercase tracking-widest text-white sm:text-2xl">Power-ups</h3>
+                    <p className="mt-1 text-xs uppercase tracking-wider text-slate-500">Ative os bônus na próxima partida · duração de 15 segundos</p>
                   </div>
                   <span className="text-xs font-black text-amber-400">{state.coins} moedas</span>
                 </div>
-                <div className="space-y-2">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
                   {Object.entries(POWERUP_COSTS).map(([powerUp, cost]) => (
                     <button
                       type="button"
                       key={powerUp}
                       onClick={() => buyPowerUp(powerUp)}
                       disabled={state.coins < cost}
-                      className="flex w-full items-center justify-between rounded-xl border border-cyan-500/20 bg-slate-900/80 px-4 py-3 text-left transition-colors hover:border-cyan-400/60 hover:bg-cyan-500/10 disabled:cursor-not-allowed disabled:opacity-40"
+                      className="flex min-h-24 w-full items-center justify-between rounded-2xl border border-cyan-500/20 bg-slate-900/80 px-4 py-4 text-left shadow-lg transition-colors hover:border-cyan-400/60 hover:bg-cyan-500/10 disabled:cursor-not-allowed disabled:opacity-40 sm:min-h-28 sm:px-5"
                     >
                       <span>
                         <span className="block text-xs font-black uppercase tracking-wide text-cyan-300">{POWERUP_LABELS[powerUp]}</span>
